@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# curl https://github.com/ionoid/install_ionoid_sealos_manager_sdk.bash | bash
+# curl https://raw.githubusercontent.com/ionoid/install-ionoid/master/install_ionoid_sealos_manager_sdk.bash | bash
 
-URL=https://github.com/opendevices/packages/raw/master/sealos-manager/releases/
+URL=https://raw.githubusercontent.com/opendevices/packages/master/sealos-manager/releases/
 MANAGER_PACKAGE=sealos-manager
 
 COMMAND=${0##*/}
@@ -108,6 +108,7 @@ done
 
 
 MANAGER_FILE=sealos-manager-latest-${MACHINE}.zip
+MANAGER_EXTRACT=sealos-manager-latest-${MACHINE}
 download_src=$URL/${MANAGER_FILE}
 
 trace() {
@@ -135,6 +136,7 @@ install() {
         install_dir=$DESTDIR
         export $DESTDIR
         download_dst=$scratch/${MANAGER_FILE}
+        extract_dst=$scratch/${MANAGER_EXTRACT}
 
         # Download from github.
         download "$download_src" "$download_dst" || return
@@ -143,11 +145,17 @@ install() {
         trace mkdir -p "$install_dir" || return
 
         # Extract into destination.
-        trace tar -C "$install_dir" -zxvf "$download_dst" || return
+        trace unzip "$download_dst" -d "${extract_dst}" || return
         echo
 
         # Install script.
-        trace "$destination/install.bash" || return
+        if [ "$UID" = "0" ]; then
+                trace "${extract_dst}/install.bash" || return
+        else
+                trace sudo -E "$extract_dst/install.bash" || return
+        fi
+
+        echo
 }
 
 scratch=$(mktemp -d -t tmp.XXXXXXXXXX) && trap "command rm -rf $scratch" EXIT || exit 1
