@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#URL=
+URL=https://raw.githubusercontent.com/ionoid/install-ionoid/master/install_ionoid_sealos_manager_sdk.bash
 
 usage() {
         echo "
