@@ -126,9 +126,8 @@ while true; do
 done
 
 
-MANAGER_FILE=sealos-manager-latest-${MACHINE}.zip
-MANAGER_EXTRACT=sealos-manager-latest-${MACHINE}
-download_src=$URL/${MANAGER_FILE}
+declare MANAGER_FILE=sealos-manager-latest-${MACHINE}
+declare MANAGER_URL=""
 
 trace() {
         echo "$@" >&2
@@ -139,7 +138,8 @@ download() {
         SRC=$1
         DST=$2
         if trace which curl >/dev/null; then
-                trace curl -o "$DST" -# -f "$SRC"
+                MANAGER_URL=$(trace curl -# -f "$SRC")
+                trace curl -# -f "$MANAGER_URL" > "$DST"
         else
                 echo "Error: failed 'curl' must be installed to download files." >&2
                 return 1
@@ -153,8 +153,9 @@ install() {
         fi
 
         export DESTDIR=$DESTDIR
-        download_dst=$scratch/${MANAGER_FILE}
-        extract_dst=$scratch/${MANAGER_EXTRACT}
+        download_src=$URL/${MANAGER_FILE}.link
+        download_dst=$scratch/${MANAGER_FILE}.zip
+        extract_dst=$scratch/${MANAGER_FILE}
 
         # Download from github.
         download "$download_src" "$download_dst" || return
@@ -170,11 +171,14 @@ install() {
 
         # Install script.
         echo "Starting Installation into $DESTDIR"
-        trace cd "${extract_dst}"
+        target_dir=$(basename -- $MANAGER_URL)
+        target_dir="${target_dir%.*}"
+        trace cd "$extract_dst/${target_dir}"
 
-        if [ -f ${CONFIG} ]; then
-                echo "Copying ${CONFIG} to ${extract_dst}"
-                cp -t ./prod ${CONFIG}
+        # Install config.json to be put into production
+        if [ ! -z ${CONFIG} ]; then
+                echo "Copying ${CONFIG} to ${extract_dst}/${target_dir}"
+                trace cp -t ./prod ${CONFIG} || true
         fi
 
         if [ "$UID" = "0" ]; then
