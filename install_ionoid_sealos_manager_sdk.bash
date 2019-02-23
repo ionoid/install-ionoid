@@ -9,7 +9,7 @@ COMMAND=${0##*/}
 
 usage() {
         echo "
-$COMMAND [ --machine=ARCH ] [ --config=config.json ] [ --install-dir=DIRECTORY ] [ --install-image=IMAGE ]
+$COMMAND [ --machine=ARCH ] [ --config=config.json ] [ --destdir=DIRECTORY ] [ --image=IMAGE ]
 
 Downloads Ionoid SealOS Manager '$MANAGER_PACKAGE' and then runs the
 install.bash script included in the download.
@@ -17,19 +17,25 @@ install.bash script included in the download.
 --machine=ARCH
   Selects machine target. Supported values: arm6, arm7, amd64.
   As an example, for Raspberry PI 3 '--machine=arm7',
-  for Raspberry PI Zero '--machine=arm6'.
+  for Raspberry PI Zero '--machine=arm6'. The Machine can also be passed
+  as an environment variable: 'MACHINE=arm6 $COMMAND'.
 
 --config=config.json
   Path of the Project's 'config.json' file. This file can be downloaded from
   your Ionoid IoT Projects, select add device to download it.
+  The config can also be passed as an envrionment variable:
+  'CONFIG=config.json $COMMAND'
 
---install-dir=DIRECTORY
+--destdir=DIRECTORY
   Sets the installation root directory to DIRECTORY. The default is
-  current '/' root filesystem.
+  current '/' root filesystem. The install directory can also be passed
+  as an environment variable: 'DESTDIR=/install_dir $COMMAND'
 
---install-image=IMAGE
+--image=IMAGE
   Sets the installation target image to IMAGE. This option takes precendence on
-  '--install-dir'. The image should be a supported Linux-IoT OS.
+  '--install-dir'. The image should be a supported Linux-IoT OS. The
+  target image can also be as an environment variable:
+  'IMAGE=/image.img $COMMAND'
 " >&2
   exit 2
 }
@@ -72,31 +78,44 @@ while true; do
                         exit 1
                 fi
                 ;;
-                --install-dir)
+                --destdir)
                 shift
                 case $# in
                         0)
-                        echo "$COMMAND: --install-dir: DIRECTORY argument expected." >&2
+                        echo "$COMMAND: --destdir: DIRECTORY argument expected." >&2
                         exit 1
                         ;;
                 esac
                 DESTDIR=$1
                 ;;
-                --install-dir=*)
+                --destdir=*)
                 DESTDIR=${1#*=}
                 ;;
-                --install-image)
+                --image)
                 shift
                 case $# in
                         0)
-                        echo "$COMMAND: --install-image: IMAGE argument expected." >&2
+                        echo "$COMMAND: --image: IMAGE argument expected." >&2
                         exit 1
                         ;;
                 esac
-                DESTDIR=$1
+                IMAGE=$1
                 ;;
-                --install-image=*)
+                --image=*)
                 IMAGE=${1#*=}
+                ;;
+                --config)
+                shift
+                case $# in
+                        0)
+                        echo "$COMMAND: --config: CONFIG argument expected." >&2
+                        exit 1
+                        ;;
+                esac
+                CONFIG=$1
+                ;;
+                --image=*)
+                CONFIG=${1#*=}
                 ;;
 
         *)
@@ -120,7 +139,7 @@ download() {
         SRC=$1
         DST=$2
         if trace which curl >/dev/null; then
-                trace curl -# -f "$SRC" > "$DST"
+                trace curl -o "$DST" -# -f "$SRC"
         else
                 echo "Error: failed 'curl' must be installed to download files." >&2
                 return 1
@@ -133,8 +152,7 @@ install() {
                 usage
         fi
 
-        install_dir=$DESTDIR
-        export $DESTDIR
+        export DESTDIR=$DESTDIR
         download_dst=$scratch/${MANAGER_FILE}
         extract_dst=$scratch/${MANAGER_EXTRACT}
 
@@ -142,22 +160,34 @@ install() {
         download "$download_src" "$download_dst" || return
         echo
 
-        trace mkdir -p "$install_dir" || return
+        if [ ! -z ${DESTDIR} ]; then
+                trace mkdir -p "$DESTDIR" || return
+        fi
 
         # Extract into destination.
         trace unzip "$download_dst" -d "${extract_dst}" || return
         echo
 
         # Install script.
+        echo "Starting Installation into $DESTDIR"
+        trace cd "${extract_dst}"
+
+        if [ -f ${CONFIG} ]; then
+                echo "Copying ${CONFIG} to ${extract_dst}"
+                cp -t ./prod ${CONFIG}
+        fi
+
         if [ "$UID" = "0" ]; then
-                trace "${extract_dst}/install.bash" || return
+                trace "./install.bash" || return
         else
-                trace sudo -E "$extract_dst/install.bash" || return
+                trace sudo -E "./install.bash" || return
         fi
 
         echo
 }
 
-scratch=$(mktemp -d -t tmp.XXXXXXXXXX) && trap "command rm -rf $scratch" EXIT || exit 1
+scratch=$(mktemp -d -t tmp.XXXXXXXXXX) || exit 1
+
+trap "command rm -rf $scratch $0" EXIT || exit 1
 
 install
