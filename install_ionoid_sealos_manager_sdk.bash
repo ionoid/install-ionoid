@@ -128,7 +128,7 @@ download() {
 
 install() {
         if [ -z ${MACHINE} ]; then
-                echo "${COMMAND} Error: machine is not set" >&2
+                echo "Error: machine is not set" >&2
                 usage
         fi
 
