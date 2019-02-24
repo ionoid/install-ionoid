@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+# Copyright (2019) Open Devices
+# Copyright (2019) Djalal Harouni
+#
+
 # curl https://raw.githubusercontent.com/ionoid/install-ionoid/master/install_ionoid_sealos_manager_sdk.bash | bash
 
 URL=https://raw.githubusercontent.com/opendevices/packages/master/sealos-manager/releases/
