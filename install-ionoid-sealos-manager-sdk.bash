@@ -184,11 +184,15 @@ install() {
         echo
 
         # Install script.
-        echo "Starting Installation into $DESTDIR"
+        echo "Starting Installation ${MANAGER_FILE} "
         target_dir=$(basename -- $MANAGER_URL)
         target_dir="${target_dir%.*}"
 
-        if [ -f $IMAGE ]; then
+        if [ ! -z $IMAGE ]; then
+                if [ ! -f $IMAGE ]; then
+                        echo "Error: can not locate image ${IMAGE}"
+                        exit 1
+                fi
                 echo "Using $IMAGE as a target image"
                 export SEALOS_DIR="${extract_dst}/${target_dir}"
                 if [ "$UID" = "0" ]; then
