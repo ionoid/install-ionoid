@@ -5,7 +5,7 @@
 # Copyright (2019) Djalal Harouni
 #
 
-# curl https://raw.githubusercontent.com/ionoid/install-ionoid/master/install_ionoid_sealos_manager_sdk.bash | bash
+# curl https://raw.githubusercontent.com/ionoid/install-ionoid/master/install-ionoid-sealos-manager-sdk.bash | bash
 
 URL=https://raw.githubusercontent.com/opendevices/packages/master/sealos-manager/releases/
 MANAGER_PACKAGE=sealos-manager
@@ -18,6 +18,12 @@ $COMMAND [ --machine=ARCH ] [ --config=config.json ] [ --destdir=DIRECTORY ] [ -
 
 Downloads Ionoid SealOS Manager '$MANAGER_PACKAGE' and then runs the
 install.bash script included in the download.
+
+--help
+  Print this help message.
+
+--os=OS
+  Selects the Operating System.
 
 --machine=ARCH
   Selects machine target. Supported values: arm6, arm7, amd64.
@@ -122,7 +128,9 @@ while true; do
                 --image=*)
                 CONFIG=${1#*=}
                 ;;
-
+                --help)
+                usage
+                ;;
         *)
                 usage
                 ;;
@@ -158,6 +166,9 @@ install() {
         fi
 
         export DESTDIR=$DESTDIR
+        export MACHINE=$MACHINE
+        export OS=$OS
+
         download_src=$URL/${MANAGER_FILE}.link
         download_dst=$scratch/${MANAGER_FILE}.zip
         extract_dst=$scratch/${MANAGER_FILE}
@@ -197,6 +208,6 @@ install() {
 
 scratch=$(mktemp -d -t tmp.XXXXXXXXXX) || exit 1
 
-trap "command rm -rf $scratch $0" EXIT || exit 1
+trap "command rm -rf $scratch" EXIT || exit 1
 
 install
