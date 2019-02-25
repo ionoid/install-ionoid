@@ -30,8 +30,7 @@ This command downloads the installation script and execute it with
 
 * MACHINE: is the target machine architecture, valid values are: `arm6`,
         `arm7`, `amd64`.
-Example Raspberry PI 3: `arm7`
-Example Raspberry PI Zero: 'arm6`
+Example Raspberry PI 3: `arm7`, Raspberry PI Zero: `arm6`
 
 
 * IMAGE: is the final Operating System image where the tools will be
