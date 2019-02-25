@@ -10,21 +10,16 @@
 bash=$(which bash)
 
 URL=https://raw.githubusercontent.com/ionoid/install-ionoid/master/install-ionoid-sealos-manager-sdk.bash
-BUILD_URL=https://raw.githubusercontent.com/ionoid/install-ionoid/master/build-os.bash
 
 function download {
         script_file="$scratch/install_ionoid_sealos_manager_sdk.bash"
-        build_os_file="$scratch/build-os.bash"
 
         echo "Downloading Ionoid SealOS Manager install script: $URL"
         curl -# "$URL" > "$script_file" || exit
         chmod 775 "$script_file"
 
-        echo "Downloading Build OS script: $BUILD_URL"
-        curl -# "$BUILD_URL" > "$build_os_file" || exit
-        chmod 775 "$build_os_file"
-
         echo "Running install script from: $script_file"
+        cd $scratch
         $bash -c "$script_file" "$@"
 }
 

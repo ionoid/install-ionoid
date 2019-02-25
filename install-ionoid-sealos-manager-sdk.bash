@@ -8,6 +8,7 @@
 # curl https://raw.githubusercontent.com/ionoid/install-ionoid/master/install-ionoid-sealos-manager-sdk.bash | bash
 
 URL=https://raw.githubusercontent.com/opendevices/packages/master/sealos-manager/releases/
+BUILD_URL=https://raw.githubusercontent.com/ionoid/install-ionoid/master/build-os.bash
 MANAGER_PACKAGE=sealos-manager
 
 COMMAND=${0##*/}
@@ -127,6 +128,14 @@ trace() {
         "$@"
 }
 
+download_build_os() {
+        build_os_file="$scratch/build-os.bash"
+
+        echo "Downloading Build OS script: $BUILD_URL"
+        curl -# "$BUILD_URL" > "$build_os_file" || exit
+        chmod 775 "$build_os_file"
+}
+
 download() {
         SRC=$1
         DST=$2
@@ -162,6 +171,8 @@ install() {
         download_dst=$scratch/${MANAGER_FILE}.zip
         extract_dst=$scratch/${MANAGER_FILE}
 
+        download_build_os
+
         # Download from github.
         download "$download_src" "$download_dst" || return
         echo
@@ -180,7 +191,10 @@ install() {
                         exit 1
                 fi
                 echo "Using $IMAGE as a target image"
+
                 export SEALOS_DIR="${extract_dst}/${target_dir}"
+                trace cd "$scratch"
+
                 if [ "$UID" = "0" ]; then
                         trace "./build-os.bash" || return
                 else
