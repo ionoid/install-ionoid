@@ -131,21 +131,46 @@ trace() {
 download_build_os() {
         build_os_file="$scratch/build-os.bash"
 
-        echo "Downloading Build OS script: $BUILD_URL"
-        curl -# "$BUILD_URL" > "$build_os_file" || exit
-        chmod 775 "$build_os_file"
+        if trace which curl >/dev/null; then
+                echo "Downloading Build OS script: $BUILD_URL"
+                curl -# "$BUILD_URL" > "$build_os_file" || exit
+                chmod 775 "$build_os_file"
+        else
+                echo "Error: failed 'curl' must be installed to download files." >&2
+                return 1
+        fi
 }
 
 download() {
         SRC=$1
         DST=$2
-        if trace which curl >/dev/null; then
-                MANAGER_URL=$(trace curl -# -f "$SRC")
-                trace curl -o "$DST" -C - -# -f "$MANAGER_URL"
-        else
-                echo "Error: failed 'curl' must be installed to download files." >&2
-                return 1
+
+        MANAGER_URL=$(trace curl -# -f "$SRC")
+
+        # already downloaded file ?
+        if [ -f $DST ]; then
+                size=$(stat -c%s "$DST")
+
+                ret=$(curl --retry 2 -sI -S \
+                                --output /dev/null \
+                                --write-out "%{http_code}" -- $MANAGER_URL)
+
+                if [ "$ret" -eq "200" ]; then
+                        length=$(curl --retry 2 -sI -S \
+                                        -- $MANAGER_URL 2>/dev/null | \
+                                        grep -E -i "^(Content-Length:.*)|^(content-length:.*)" | \
+                                        awk '{print $2}' | tr -d '\r')
+                        if [ "$size" = "$length" ]; then
+                                echo "Install: already found $DST size $size, do not download again"
+                                        return
+                        else
+                                echo "Install: found $DST but seems invalid, scheduling download"
+                        fi
+                fi
         fi
+
+        trace curl -o "$DST" -C - -# -f "$MANAGER_URL"
+
 }
 
 install() {
