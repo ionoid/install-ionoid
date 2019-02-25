@@ -34,8 +34,8 @@ Example Raspberry PI 3: `arm7`, Raspberry PI Zero: `arm6`
 
 
 * IMAGE: is the final Operating System image where the tools will be
-installed. Example for `Raspbian` downloaded from Rasperry Pi foundation website `IMAGE=raspbian-stretch-lite.zip`.
+installed. Example for [Raspbian](https://www.raspberrypi.org/downloads/raspbian/) downloaded from Rasperry Pi foundation website `IMAGE=raspbian-stretch-lite.zip`.
 
 
-* CONFIG: is the project's `config.json`, you can obtain it from the
+* CONFIG: is the project's `config.json`. You can obtain it from the
 correspondig Ionoid Project, by selecting `Add Devices`.
