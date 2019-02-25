@@ -165,9 +165,12 @@ install() {
                 usage
         fi
 
+        export OS=$OS
+        export CONFIG=$CONFIG
         export DESTDIR=$DESTDIR
         export MACHINE=$MACHINE
-        export OS=$OS
+        export WORKDIR=$scratch
+        export IMAGE=$IMAGE
 
         download_src=$URL/${MANAGER_FILE}.link
         download_dst=$scratch/${MANAGER_FILE}.zip
@@ -177,11 +180,6 @@ install() {
         download "$download_src" "$download_dst" || return
         echo
 
-        if [ ! -z ${DESTDIR} ]; then
-                trace mkdir -p "$DESTDIR" || return
-        fi
-
-        # Extract into destination.
         trace unzip "$download_dst" -d "${extract_dst}" || return
         echo
 
@@ -189,18 +187,32 @@ install() {
         echo "Starting Installation into $DESTDIR"
         target_dir=$(basename -- $MANAGER_URL)
         target_dir="${target_dir%.*}"
-        trace cd "$extract_dst/${target_dir}"
 
-        # Install config.json to be put into production
-        if [ ! -z ${CONFIG} ]; then
-                echo "Copying ${CONFIG} to ${extract_dst}/${target_dir}"
-                trace cp -t ./prod ${CONFIG} || true
-        fi
-
-        if [ "$UID" = "0" ]; then
-                trace "./install.bash" || return
+        if [ -f $IMAGE ]; then
+                echo "Using $IMAGE as a target image"
+                export SEALOS_DIR="${extract_dst}/${target_dir}"
+                if [ "$UID" = "0" ]; then
+                        trace "./build-os.bash" || return
+                else
+                        trace sudo -E "./build-os.bash" || return
+                fi
         else
-                trace sudo -E "./install.bash" || return
+                trace cd "$extract_dst/${target_dir}"
+
+                # Install config.json to be put into production
+                if [ ! -z ${CONFIG} ]; then
+                        echo "Copying ${CONFIG} to ${extract_dst}/${target_dir}"
+                        trace cp -t ./prod ${CONFIG} || true
+                        trace chmod 0600 ./prod/${CONFIG}
+                fi
+
+                if [ "$UID" = "0" ]; then
+                        trace "./install.bash" || return
+                else
+                        trace sudo -E "./install.bash" || return
+                fi
+
+                echo "Installing Ionoid Tools finished"
         fi
 
         echo
