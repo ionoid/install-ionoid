@@ -65,29 +65,9 @@ while true; do
                         ;;
                 esac
                 m=$1
-                if [ "$m" = "arm6" ]; then
-                        MACHINE=$m
-                elif [ "$m" = "arm7" ]; then
-                        MACHINE=$m
-                elif [ "$m" = "amd64" ]; then
-                        MACHINE=$m
-                else
-                        echo "$COMMAND: --machine: ARCH argument not supported." >&2
-                        exit 1
-                fi
                 ;;
                 --machine=*)
                 m=${1#*=}
-                if [ "$m" = "arm6" ]; then
-                        MACHINE=$m
-                elif [ "$m" = "arm7" ]; then
-                        MACHINE=$m
-                elif [ "$m" = "amd64" ]; then
-                        MACHINE=$m
-                else
-                        echo "$COMMAND: --machine: ARCH argument not supported." >&2
-                        exit 1
-                fi
                 ;;
                 --destdir)
                 shift
@@ -163,6 +143,12 @@ install() {
         if [ -z ${MACHINE} ]; then
                 echo "Error: machine is not set" >&2
                 usage
+        fi
+
+        if [ "$MACHINE" != "arm6" ] && [ "$MACHINE" != "arm7" ] && \
+           [ "$MACHINE" != "amd64" ]; then
+                echo "$COMMAND: --machine: ARCH '$MACHINE' argument not supported." >&2
+                exit 1
         fi
 
         export OS=$OS
