@@ -46,7 +46,12 @@ check_file() {
 }
 
 cp_config_to_sealos_manager() {
-        if [ -f $CONFIG_JSON ]; then
+        if [ -z ${SEALOS_DIR} ]; then
+                return
+        fi
+
+        if [ ! -z ${CONFIG_JSON} ] && [ -f $CONFIG_JSON ]; then
+                echo "Install ${OS}: copy ${CONFIG_JSON} into $SEALOS_DIR/prod/"
                 cp -t $SEALOS_DIR/prod/ $CONFIG_JSON
                 chmod 0600 $SEALOS_DIR/prod/config.json
         fi
@@ -56,6 +61,8 @@ cp_config_to_sealos_manager() {
 get_raspbian_classic_img_rootfs_offset() {
         __start=$(fdisk -l $IMAGE_DIR/$UNZIPPED_IMAGE | grep Linux | awk ' {print $2}')
         OFFSET=$(($__start * 512))
+
+        echo "Install ${OS}: image rootfs found at offset $OFFSET"
 }
 
 mount_rootfs()
@@ -63,21 +70,31 @@ mount_rootfs()
         if [ ! -d $ROOTFS ];then
                 mkdir -p $ROOTFS
         fi
-    
-        mount -o loop,offset=$OFFSET $IMAGE_DIR/$UNZIPPED_IMAGE $ROOTFS
+
+        mount -o loop,offset=$OFFSET $IMAGE_DIR/$UNZIPPED_IMAGE $ROOTFS || exit 2
+        echo "Install ${OS}: mounted rootfs of ${IMAGE} at ${ROOTFS}"
 }
 
 umount_rootfs()
 {
         sync;sync;
         umount $ROOTFS
+        echo "Install ${OS}: umounted rootfs ${ROOTFS}"
 }
 
 install_sealos_manager()
 {
+        if [ -z $SEALOS_DIR ]; then
+                echo "Install ${OS}: SEALOS_DIR variable not set, skipping sealos-manager install"
+                return
+        fi
+
         old_pwd=$(pwd)
 
-        cd $SEALOS_DIR
+        cd $SEALOS_DIR || exit 2
+
+
+        echo "Install ${OS}: Installing sealos-manager into $ROOTFS"
         DESTDIR=$ROOTFS ./install.bash
 
         cd $old_pwd
@@ -85,9 +102,11 @@ install_sealos_manager()
 
 zip_os_image()
 {
+        echo "Install ${OS}: compressing ${UNZIPPED_IMAGE} into ${IMAGE}"
         zip tmp$IMAGE $IMAGE_DIR/$UNZIPPED_IMAGE
 
         # then mv file
+        echo "Install ${OS}: zip ${IMAGE} finishing"
         mv -f tmp$IMAGE $IMAGE || exit 1
 }
 
@@ -95,6 +114,7 @@ unzip_os_image() {
         rm -f $IMAGE_DIR/$UNZIPPED_IMAGE
 
         # unzip in same directory for space storage
+        echo "Install ${OS}: decompressing ${IMAGE} into ${IMAGE_DIR}"
         unzip "$IMAGE" -d "$IMAGE_DIR" || exit 1
 }
 
@@ -122,8 +142,13 @@ main() {
                 exit 2
         fi
 
-        if [ ! -f ${IMAGE} ]; then
+        if [ -z ${IMAGE} ]; then
                 echo "Error: needs an Image, run with: IMAGE=file $COMMAND"
+                exit 2
+        fi
+
+        if [ ! -f ${IMAGE} ]; then
+                echo "Error: Image file '${IMAGE} not valid"
                 exit 2
         fi
 
