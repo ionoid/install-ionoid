@@ -59,25 +59,34 @@ cp_config_to_sealos_manager() {
 
 # Returns offset of classic Raspbian images
 get_raspbian_classic_img_rootfs_offset() {
+        __start=$(fdisk -l $IMAGE_DIR/$UNZIPPED_IMAGE | grep FAT32 | awk ' {print $2}')
+        OFFSET_BOOTFS=$(($__start * 512))
         __start=$(fdisk -l $IMAGE_DIR/$UNZIPPED_IMAGE | grep Linux | awk ' {print $2}')
-        OFFSET=$(($__start * 512))
+        OFFSET_ROOTFS=$(($__start * 512))
 
-        echo "Install ${OS}: image rootfs found at offset $OFFSET"
+        echo "Install ${OS}: image boot found at offset $OFFSET_BOOTFS"
+        echo "Install ${OS}: image rootfs found at offset $OFFSET_ROOTFS"
 }
 
-mount_rootfs()
+mount_fs()
 {
-        if [ ! -d $ROOTFS ];then
-                mkdir -p $ROOTFS
+        if [ ! -d $BOOTFS ];then
+                mkdir -p $BOOTFS
         fi
 
-        mount -o loop,offset=$OFFSET $IMAGE_DIR/$UNZIPPED_IMAGE $ROOTFS || exit 2
+
+        mount -o loop,offset=$OFFSET_ROOTFS $IMAGE_DIR/$UNZIPPED_IMAGE $ROOTFS || exit 2
         echo "Install ${OS}: mounted rootfs of ${IMAGE} at ${ROOTFS}"
+
+        mount -o loop,offset=$OFFSET_BOOTFS $IMAGE_DIR/$UNZIPPED_IMAGE $BOOTFS || exit 2
+        echo "Install ${OS}: mounted bootfs of ${IMAGE} at ${BOOTFS}"
 }
 
-umount_rootfs()
+umount_fs()
 {
         sync;sync;
+        umount $BOOTFS
+        echo "Install ${OS}: umounted boot ${BOOTFS}"
         umount $ROOTFS
         echo "Install ${OS}: umounted rootfs ${ROOTFS}"
 }
@@ -93,7 +102,6 @@ install_sealos_manager()
 
         cd $SEALOS_DIR || exit 2
 
-
         echo "Install ${OS}: Installing sealos-manager into $ROOTFS"
         DESTDIR=$ROOTFS ./install.bash
 
@@ -103,7 +111,7 @@ install_sealos_manager()
 zip_os_image()
 {
         echo "Install ${OS}: compressing ${UNZIPPED_IMAGE} into ${IMAGE}"
-        zip $IMAGE.tmp $IMAGE_DIR/$UNZIPPED_IMAGE
+        zip -j $IMAGE.tmp $IMAGE_DIR/$UNZIPPED_IMAGE
 
         # then mv file
         echo "Install ${OS}: zip ${IMAGE} finishing"
@@ -115,7 +123,7 @@ unzip_os_image() {
 
         # unzip in same directory for space storage
         echo "Install ${OS}: decompressing ${IMAGE} into ${IMAGE_DIR}"
-        unzip "$IMAGE" -d "$IMAGE_DIR" || exit 1
+        unzip -j -o "$IMAGE" -d "$IMAGE_DIR" || exit 1
 }
 
 prepare_raspbian_os() {
@@ -127,9 +135,9 @@ prepare_raspbian_os() {
         unzip_os_image
 
         get_raspbian_classic_img_rootfs_offset
-        mount_rootfs
+        mount_fs
         install_sealos_manager
-        umount_rootfs
+        umount_fs
 
         zip_os_image
 
@@ -161,6 +169,7 @@ main() {
         IMAGE_NAME="${IMAGE_NAME%.*}"
         IMAGE_DIR=$(dirname $IMAGE)
         ROOTFS="${WORKDIR}/$OS/rootfs"
+        BOOTFS="${WORKDIR}/$OS/rootfs/boot"
 
         # fix OS env
         if [ -z $OS ]; then
