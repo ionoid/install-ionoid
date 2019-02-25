@@ -5,11 +5,11 @@
 # Copyright (2019) Djalal Harouni
 #
 
-# curl https://raw.githubusercontent.com/ionoid/install-ionoid/master/sdk-ionoid-sealos-iot.bash | bash
+# curl https://manager.services.ionoid.net/install-tools.bash | bash
 
 bash=$(which bash)
 
-URL=https://raw.githubusercontent.com/ionoid/install-ionoid/master/install_ionoid_sealos_manager_sdk.bash
+URL=https://raw.githubusercontent.com/ionoid/install-ionoid/master/install-ionoid-sealos-manager-sdk.bash
 BUILD_URL=https://raw.githubusercontent.com/ionoid/install-ionoid/master/build-os.bash
 
 function download {
