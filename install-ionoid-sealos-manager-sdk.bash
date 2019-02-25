@@ -141,12 +141,7 @@ download() {
         DST=$2
         if trace which curl >/dev/null; then
                 MANAGER_URL=$(trace curl -# -f "$SRC")
-                prev_file=$(basename -- $MANAGER_URL)
-                if [ ! -f prev_file ]; then
-                        trace curl -# -f "$MANAGER_URL" > "$DST"
-                else
-                        echo "Install ionoid: found previous $prev_file downloaded file"
-                fi
+                trace curl -C - -# -f "$MANAGER_URL" > "$DST"
         else
                 echo "Error: failed 'curl' must be installed to download files." >&2
                 return 1
