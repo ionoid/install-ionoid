@@ -10,8 +10,17 @@ To install Ionoid SealOS Manager, simply run the following command
 on your termainl:
 
 ```bash
-curl https://sdk.services.ionoid.net/install.bash | MACHINE=arm7 IMAGE=raspbian-stretch-lite.zip CONFIG=config.json bash
+curl https://manager.services.ionoid.net/install-tools.bash | MACHINE=arm7 IMAGE=raspbian-stretch-lite.zip CONFIG=config.json bash
 ```
+
+or
+
+```bash
+curl -O https://manager.services.ionoid.net/install-tools.bash
+chmod u+x 755 install-tools.bash
+MACHINE=arm7 IMAGE=raspbian-stretch-lite.zip CONFIG=config.json ./install-tools.bash
+```
+
 
 Follow the progress, and when prompted for `root` password, enter it.
 It is used for `sudo` command to install programs if necessary.
