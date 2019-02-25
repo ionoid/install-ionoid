@@ -141,7 +141,7 @@ download() {
         DST=$2
         if trace which curl >/dev/null; then
                 MANAGER_URL=$(trace curl -# -f "$SRC")
-                trace curl -C - -# -f "$MANAGER_URL" > "$DST"
+                trace curl -o "$DST" -C - -# -f "$MANAGER_URL"
         else
                 echo "Error: failed 'curl' must be installed to download files." >&2
                 return 1
