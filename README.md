@@ -41,6 +41,6 @@ or
 
 ```bash
 curl -O https://manager.services.ionoid.net/install-tools.bash
-chmod u+x 755 install-tools.bash
+chmod 755 install-tools.bash
 MACHINE=arm7 IMAGE=raspbian-stretch-lite.zip CONFIG=config.json ./install-tools.bash
 ```
