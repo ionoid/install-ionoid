@@ -6,27 +6,17 @@ support any Linux system with systemd installed.
 
 ## Install Ionoid IoT Manager
 
-To install Ionoid SealOS Manager, simply run the following command
-on your termainl:
-
-```bash
-curl https://manager.services.ionoid.net/install-tools.bash | MACHINE=arm7 IMAGE=raspbian-stretch-lite.zip CONFIG=config.json bash
-```
-
-or
-
-```bash
-curl -O https://manager.services.ionoid.net/install-tools.bash
-chmod u+x 755 install-tools.bash
-MACHINE=arm7 IMAGE=raspbian-stretch-lite.zip CONFIG=config.json ./install-tools.bash
-```
-
+To install Ionoid SealOS Manager, simply run the install command
+on your termainl.
 
 Follow the progress, and when prompted for `root` password, enter it.
 It is used for `sudo` command to install programs if necessary.
 
 This command downloads the installation script and execute it with
 `bash` making sure to pass the right envrionment variables.
+
+
+Supported environment variables are:
 
 * MACHINE: is the target machine architecture, valid values are: `arm6`,
         `arm7`, `amd64`.
@@ -39,3 +29,18 @@ installed. Example for [Raspbian](https://www.raspberrypi.org/downloads/raspbian
 
 * CONFIG: is the project's `config.json`. You can obtain it from the
 correspondig Ionoid Project, by selecting `Add Devices`.
+
+
+Install command:
+
+```bash
+curl https://manager.services.ionoid.net/install-tools.bash | MACHINE=arm7 IMAGE=raspbian-stretch-lite.zip CONFIG=config.json bash
+```
+
+or
+
+```bash
+curl -O https://manager.services.ionoid.net/install-tools.bash
+chmod u+x 755 install-tools.bash
+MACHINE=arm7 IMAGE=raspbian-stretch-lite.zip CONFIG=config.json ./install-tools.bash
+```
