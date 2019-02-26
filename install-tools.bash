@@ -11,6 +11,12 @@ bash=$(which bash)
 
 URL=https://raw.githubusercontent.com/ionoid/install-ionoid/master/install-ionoid-sealos-manager-sdk.bash
 
+export DESTDIR=$DESTDIR
+export MACHINE=$MACHINE
+export IMAGE=$(realpath $IMAGE)
+export CONFIG=$(realpath $CONFIG)
+
+
 function download {
         script_file="$scratch/install-ionoid-sealos-manager-sdk.bash"
 
