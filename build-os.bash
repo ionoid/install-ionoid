@@ -74,7 +74,6 @@ mount_fs()
                 mkdir -p $BOOTFS
         fi
 
-
         mount -o loop,offset=$OFFSET_ROOTFS $IMAGE_DIR/$UNZIPPED_IMAGE $ROOTFS || exit 2
         echo "Install ${OS}: mounted rootfs of ${IMAGE} at ${ROOTFS}"
 
@@ -85,9 +84,11 @@ mount_fs()
 umount_fs()
 {
         sync;sync;
-        umount $BOOTFS
+
+        umount $BOOTFS || exit 2
         echo "Install ${OS}: umounted boot ${BOOTFS}"
-        umount $ROOTFS
+
+        umount $ROOTFS || exit 2
         echo "Install ${OS}: umounted rootfs ${ROOTFS}"
 }
 
@@ -116,6 +117,7 @@ zip_os_image()
         # then mv file
         echo "Install ${OS}: zip ${IMAGE} finishing"
         mv -f $IMAGE.tmp $IMAGE || exit 1
+        rm -fr $IMAGE_DIR/$UNZIPPED_IMAGE
 }
 
 unzip_os_image() {
@@ -186,6 +188,7 @@ main() {
         fi
 
         echo "Build OS '${OS}' into '${IMAGE}' finished"
+        command rm -fr "$ROOTFS"
 
         exit 0
 }
