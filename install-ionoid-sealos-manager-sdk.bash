@@ -186,11 +186,11 @@ install() {
         fi
 
         export OS=$OS
-        export CONFIG=$(pwd)/$CONFIG
+        export CONFIG=$(realpath $CONFIG)
         export DESTDIR=$DESTDIR
         export MACHINE=$MACHINE
         export WORKDIR=$scratch
-        export IMAGE=$(pwd)/$IMAGE
+        export IMAGE=$(realpath $IMAGE)
 
         download_src=$URL/${MANAGER_FILE}.link
         download_dst=${MANAGER_FILE}.zip
