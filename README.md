@@ -7,7 +7,7 @@ support any Linux system with systemd installed.
 ## Install Ionoid IoT Manager
 
 To install Ionoid SealOS Manager, simply run the install command
-on your termainl.
+on your terminal.
 
 Follow the progress, and when prompted for `root` password, enter it.
 It is used for `sudo` command to install programs if necessary.

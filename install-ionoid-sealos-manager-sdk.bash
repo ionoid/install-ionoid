@@ -119,7 +119,7 @@ while true; do
         shift
 done
 
-
+declare manager_dst=$(pwd)
 declare MANAGER_FILE=sealos-manager-latest-${MACHINE}
 declare MANAGER_URL=""
 
@@ -193,7 +193,7 @@ install() {
         export IMAGE=$(realpath $IMAGE)
 
         download_src=$URL/${MANAGER_FILE}.link
-        download_dst=${MANAGER_FILE}.zip
+        download_dst=${manager_dst}/${MANAGER_FILE}.zip
         extract_dst=$scratch/${MANAGER_FILE}
 
         download_build_os
