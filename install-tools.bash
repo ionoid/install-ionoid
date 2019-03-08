@@ -16,26 +16,23 @@ export MACHINE=$MACHINE
 export IMAGE=$(realpath $IMAGE)
 export CONFIG=$(realpath $CONFIG)
 
+dir=$(pwd)
 
 function download {
-        script_file="$scratch/install-ionoid-sealos-manager-sdk.bash"
+        script_file="$dir/install-ionoid-sealos-manager-sdk.bash"
 
         echo "Downloading Ionoid SealOS Manager install script: $URL"
         curl -# "$URL" > "$script_file" || exit
         chmod 775 "$script_file"
 
         echo "Running install script from: $script_file"
-        cd $scratch
+        cd $dir
         $bash -c "$script_file" "$@"
 }
 
-scratch=$(mktemp -d -t tmp.XXXXXXXXXX)
-if [ "$?" -ne "0" ]; then
-        echo "Error: failed to create temporary directory"
-        exit 2
-fi
+#scratch=$(mktemp -d -t tmp.XXXXXXXXXX)
 
-trap "command rm -rf $scratch" EXIT || exit 1
+#trap "command rm -rf $scratch" EXIT || exit 1
 
 download "$@"
 
