@@ -13,7 +13,9 @@ Follow the progress, and when prompted for `root` password, enter it.
 It is used for `sudo` command to install programs if necessary.
 
 This command downloads the installation script and execute it with
-`bash` making sure to pass the right envrionment variables.
+`bash` making sure to pass the right envrionment variables. The new
+generated image will be stored in the `output` directory where the
+original image is located.
 
 
 Supported environment variables are:
