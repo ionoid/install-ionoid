@@ -115,8 +115,9 @@ zip_os_image()
         zip -j $IMAGE.tmp $IMAGE_DIR/$UNZIPPED_IMAGE
 
         # then mv file
-        echo "Install ${OS}: zip ${IMAGE_DIR}/${IMAGE_NAME}-new.zip finishing"
-        mv -f $IMAGE.tmp ${IMAGE_DIR}/${IMAGE_NAME}-new.zip || exit 1
+        mkdir -p ${IMAGE_DIR}/output/ || exit 1
+        echo "Install ${OS}: zip ${IMAGE_DIR}/output/${IMAGE_NAME}.zip finishing"
+        mv -f $IMAGE.tmp ${IMAGE_DIR}/output/${IMAGE_NAME}.zip || exit 1
 
         rm -fr $IMAGE_DIR/$UNZIPPED_IMAGE
 }
@@ -188,7 +189,7 @@ main() {
                 exit 1
         fi
 
-        echo "Build OS '${OS}' into '${IMAGE_DIR}/${IMAGE_NAME}-new.zip' finished"
+        echo "Build OS '${OS}' into '${IMAGE_DIR}/output/${IMAGE_NAME}.zip' finished"
         command rm -fr "$ROOTFS"
 
         exit 0
