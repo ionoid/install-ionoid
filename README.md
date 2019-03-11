@@ -32,16 +32,25 @@ installed. Example for [Raspbian](https://www.raspberrypi.org/downloads/raspbian
 * CONFIG: is the project's `config.json`. You can obtain it from the
 correspondig Ionoid Project, by selecting `Add Devices`.
 
+Create a working directory:
+```bash
+mkdir ionoid-buikd
+```
+
+Copy your `config.json` and `raspbian` zip image to `ionoid-build`
+
 
 Install command:
 
 ```bash
+cd ionoid-build
 curl https://manager.services.ionoid.net/install-tools.bash | MACHINE=arm7 IMAGE=raspbian-stretch-lite.zip CONFIG=config.json bash
 ```
 
 or
 
 ```bash
+cd ionoid-build
 curl -O https://manager.services.ionoid.net/install-tools.bash
 chmod 755 install-tools.bash
 MACHINE=arm7 IMAGE=raspbian-stretch-lite.zip CONFIG=config.json ./install-tools.bash
