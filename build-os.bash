@@ -111,13 +111,13 @@ install_sealos_manager()
 
 zip_os_image()
 {
-        echo "Install ${OS}: compressing ${UNZIPPED_IMAGE} into ${IMAGE}"
-        zip -j $IMAGE.tmp $IMAGE_DIR/$UNZIPPED_IMAGE
+        mkdir -p ${IMAGE_DIR}/output/ || exit 1
+        echo "Install ${OS}: compressing ${UNZIPPED_IMAGE} into ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp"
+        zip -j ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp $IMAGE_DIR/$UNZIPPED_IMAGE
 
         # then mv file
-        mkdir -p ${IMAGE_DIR}/output/ || exit 1
         echo "Install ${OS}: zip ${IMAGE_DIR}/output/${IMAGE_NAME}.zip finishing"
-        mv -f $IMAGE.tmp ${IMAGE_DIR}/output/${IMAGE_NAME}.zip || exit 1
+        mv -f ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp ${IMAGE_DIR}/output/${IMAGE_NAME}.zip || exit 1
 
         rm -fr $IMAGE_DIR/$UNZIPPED_IMAGE
 }
