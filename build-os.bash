@@ -57,6 +57,14 @@ cp_config_to_sealos_manager() {
         fi
 }
 
+cp_config_to_bootfs() {
+        if [ ! -z ${CONFIG_JSON} ] && [ -f $CONFIG_JSON ]; then
+                echo "Install ${OS}: copy ${CONFIG_JSON} into $BOOTFS"
+                cp -t $BOOTFS $CONFIG_JSON
+                chmod 0600 $SEALOS_DIR/prod/config.json
+        fi
+}
+
 # Returns offset of classic Raspbian images
 get_raspbian_classic_img_rootfs_offset() {
         __start=$(fdisk -l $IMAGE_DIR/$UNZIPPED_IMAGE | grep FAT32 | awk ' {print $2}')
@@ -68,28 +76,40 @@ get_raspbian_classic_img_rootfs_offset() {
         echo "Install ${OS}: image rootfs found at offset $OFFSET_ROOTFS"
 }
 
-mount_fs()
+mount_rootfs()
+{
+        if [ ! -d $ROOTFS ];then
+                mkdir -p $ROOTFS
+        fi
+
+        mount -o loop,offset=$OFFSET_ROOTFS $IMAGE_DIR/$UNZIPPED_IMAGE $ROOTFS || exit 2
+        echo "Install ${OS}: mounted rootfs of ${IMAGE} at ${ROOTFS}"
+}
+
+mount_bootfs()
 {
         if [ ! -d $BOOTFS ];then
                 mkdir -p $BOOTFS
         fi
 
-        mount -o loop,offset=$OFFSET_ROOTFS $IMAGE_DIR/$UNZIPPED_IMAGE $ROOTFS || exit 2
-        echo "Install ${OS}: mounted rootfs of ${IMAGE} at ${ROOTFS}"
-
         mount -o loop,offset=$OFFSET_BOOTFS $IMAGE_DIR/$UNZIPPED_IMAGE $BOOTFS || exit 2
         echo "Install ${OS}: mounted bootfs of ${IMAGE} at ${BOOTFS}"
 }
 
-umount_fs()
+umount_rootfs()
+{
+        sync;sync;
+
+        umount $ROOTFS || exit 2
+        echo "Install ${OS}: umounted rootfs ${ROOTFS}"
+}
+
+unmount_bootfs()
 {
         sync;sync;
 
         umount $BOOTFS || exit 2
         echo "Install ${OS}: umounted boot ${BOOTFS}"
-
-        umount $ROOTFS || exit 2
-        echo "Install ${OS}: umounted rootfs ${ROOTFS}"
 }
 
 install_sealos_manager()
@@ -139,9 +159,13 @@ prepare_raspbian_os() {
         unzip_os_image
 
         get_raspbian_classic_img_rootfs_offset
-        mount_fs
+        mount_rootfs
         install_sealos_manager
-        umount_fs
+        umount_rootfs
+
+        mount_bootfs
+        cp_config_to_bootfs
+        unmount_bootfs
 
         zip_os_image
 
@@ -190,6 +214,8 @@ main() {
         fi
 
         echo "Build OS '${OS}' into '${IMAGE_DIR}/output/${IMAGE_NAME}.zip' finished"
+        umount $ROOTFS
+        unmount $BOOTFS
         command rm -fr "$ROOTFS"
 
         exit 0
