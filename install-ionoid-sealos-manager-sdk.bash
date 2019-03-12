@@ -179,6 +179,14 @@ install() {
                 usage
         fi
 
+        if [ "$MACHINE" = "armv6" ] || [ "$MACHINE" = "ARMv6" ]; then
+                MACHINE="arm6"
+        elif [ "$MACHINE" = "armv7" ] || [ "$MACHINE" = "ARMv7" ]; then
+                MACHINE="arm7"
+        elif [ "$MACHINE" = "x86-64" ]; then
+                MACHINE="amd64"
+        fi        
+
         if [ "$MACHINE" != "arm6" ] && [ "$MACHINE" != "arm7" ] && \
            [ "$MACHINE" != "amd64" ]; then
                 echo "$COMMAND: --machine: ARCH '$MACHINE' argument not supported." >&2
