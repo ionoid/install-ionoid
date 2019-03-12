@@ -32,12 +32,13 @@ installed. Example for [Raspbian](https://www.raspberrypi.org/downloads/raspbian
 * CONFIG: is the project's `config.json`. You can obtain it from the
 correspondig Ionoid Project, by selecting `Add Devices`.
 
-Create a working directory:
+Create a working directory into your home:
 ```bash
-mkdir ionoid-buikd
+mkdir -p ionoid-build
 ```
 
-Copy your `config.json` and `raspbian` zip image to `ionoid-build`
+Copy your `config.json` and `raspbian` zipped image to `ionoid-build`
+directory.
 
 
 Install command:
