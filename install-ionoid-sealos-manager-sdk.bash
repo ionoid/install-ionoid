@@ -188,7 +188,7 @@ install() {
         fi        
 
         if [ "$MACHINE" != "arm6" ] && [ "$MACHINE" != "arm7" ] && \
-           [ "$MACHINE" != "amd64" ]; then
+           [ "$MACHINE" != "amd64" ] && [ "$MACHINE" != "x86" ]; then
                 echo "$COMMAND: --machine: ARCH '$MACHINE' argument not supported." >&2
                 exit 1
         fi
@@ -210,7 +210,7 @@ install() {
         download "$download_src" "$download_dst" || return
         echo
 
-        trace unzip "$download_dst" -d "${extract_dst}" || return
+        trace unzip -o "$download_dst" -d "${extract_dst}" || return
         echo
 
         # Install script.

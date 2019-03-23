@@ -214,8 +214,8 @@ main() {
         fi
 
         echo "Build OS '${OS}' into '${IMAGE_DIR}/output/${IMAGE_NAME}.zip' finished"
-        umount $ROOTFS
-        umount $BOOTFS
+        umount $ROOTFS > /dev/null 2>&1
+        umount $BOOTFS > /dev/null 2>&1
         command rm -fr "$ROOTFS"
 
         exit 0
