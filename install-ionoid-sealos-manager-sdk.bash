@@ -128,7 +128,7 @@ trace() {
         "$@"
 }
 
-download_build_os() {
+download_build_os_script() {
         build_os_file="$scratch/build-os.bash"
 
         if trace which curl >/dev/null; then
@@ -141,7 +141,7 @@ download_build_os() {
         fi
 }
 
-download() {
+download_sealos_manager() {
         SRC=$1
         DST=$2
 
@@ -174,8 +174,14 @@ download() {
 }
 
 install() {
+        if [ -z ${MACHINE} ] && [ ! -z ${CONFIG} ]; then
+                echo "Error: machine arch is not set" >&2
+                usage
+        fi
+
+        # Check again
         if [ -z ${MACHINE} ]; then
-                echo "Error: machine is not set" >&2
+                echo "Error: machine arch is not set" >&2
                 usage
         fi
 
@@ -189,7 +195,7 @@ install() {
 
         if [ "$MACHINE" != "arm6" ] && [ "$MACHINE" != "arm7" ] && \
            [ "$MACHINE" != "amd64" ] && [ "$MACHINE" != "x86" ]; then
-                echo "$COMMAND: --machine: ARCH '$MACHINE' argument not supported." >&2
+                echo "$COMMAND: ARCH '$MACHINE' value not supported." >&2
                 exit 1
         fi
 
@@ -204,10 +210,10 @@ install() {
         download_dst=${manager_dst}/${MANAGER_FILE}.zip
         extract_dst=$scratch/${MANAGER_FILE}
 
-        download_build_os
+        download_build_os_script
 
         # Download from github.
-        download "$download_src" "$download_dst" || return
+        download_sealos_manager "$download_src" "$download_dst" || return
         echo
 
         trace unzip -o "$download_dst" -d "${extract_dst}" || return
