@@ -174,9 +174,11 @@ download_sealos_manager() {
 }
 
 install() {
-        if [ -z ${MACHINE} ] && [ ! -z ${CONFIG} ]; then
-                echo "Error: machine arch is not set" >&2
-                usage
+        if [ -z ${MACHINE} ] && [ ! -z ${CONFIG} ] && [ -f $CONFIG_JSON ]; then
+                arch=$(jq .API_PROJECT_DEVICE_ARCH ${CONFIG})
+                if [ "$arch" != "null" ]; then
+                        MACHINE=$arch
+                fi
         fi
 
         # Check again
