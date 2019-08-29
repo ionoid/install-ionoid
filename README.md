@@ -10,7 +10,7 @@ To install Ionoid SealOS Manager, simply run the install command
 on your terminal.
 
 Follow the progress, and when prompted for `root` password, enter it.
-It is used for `sudo` command to install programs if necessary.
+It is uses for `sudo` command to install programs if necessary.
 
 This command downloads the installation script and execute it with
 `bash` making sure to pass the right envrionment variables. The new
