@@ -196,15 +196,17 @@ main() {
         IMAGE_NAME=$(basename $IMAGE)
         IMAGE_NAME="${IMAGE_NAME%.*}"
         IMAGE_DIR=$(dirname $IMAGE)
-        ROOTFS="${WORKDIR}/$OS/rootfs"
-        BOOTFS="${WORKDIR}/$OS/rootfs/boot"
 
-        # fix OS env
+        # Match and fix OS env
         if [ -z $OS ]; then
                 if [[ $IMAGE == *"raspbian"* ]]; then
                         OS="raspbian"
                 fi
         fi
+
+        # Lets set rootfs and bootfs filesystems paths
+        ROOTFS="${WORKDIR}/$OS/rootfs"
+        BOOTFS="${WORKDIR}/$OS/rootfs/boot"
 
         if [ "$OS" = "raspbian" ]; then
                 prepare_raspbian_os
