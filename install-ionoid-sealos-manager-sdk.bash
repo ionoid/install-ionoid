@@ -128,6 +128,7 @@ trace() {
         "$@"
 }
 
+# Downloads build-os script and save it into $scratch workdir
 download_build_os_script() {
         build_os_file="$scratch/build-os.bash"
 
@@ -215,20 +216,19 @@ install() {
         download_dst=${manager_dst}/${MANAGER_FILE}.zip
         extract_dst=$scratch/${MANAGER_FILE}
 
+        # Download build os and store it into scratch $WORKDIR
         download_build_os_script
 
         # Download from github.
         download_sealos_manager "$download_src" "$download_dst" || return
         echo
 
-        #
-        # From now we work on a private temporary directory
-        #
-
+        # From now we work on a private $WORKDIR
+        # Unzip sealos-manager into private scratch $WORKDIR
         trace unzip -o "$download_dst" -d "${extract_dst}" || return
         echo
 
-        # Install script.
+        # Get sealos-manager version target dir and install
         echo "Starting Installation ${MANAGER_FILE} "
         target_dir=$(basename -- $MANAGER_URL)
         target_dir="${target_dir%.*}"
@@ -242,6 +242,11 @@ install() {
                         exit 1
                 fi
                 echo "Using $IMAGE as a target image"
+
+                # Lets get image name and directory
+                export IMAGE_NAME=$(basename $IMAGE)
+                export IMAGE_NAME="${IMAGE_NAME%.*}"
+                export IMAGE_DIR=$(dirname $IMAGE)
 
                 export SEALOS_DIR="${extract_dst}/${target_dir}"
                 trace cd "$scratch"

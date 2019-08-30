@@ -31,6 +31,8 @@ IMAGE=$IMAGE
 WORKDIR=$WORKDIR
 CONFIG_JSON=$CONFIG
 SEALOS_DIR=$SEALOS_DIR
+IMAGE_NAME=$IMAGE_NAME
+IMAGE_DIR=$IMAGE_DIR
 
 SEALOS_MANAGER_ZIPPED=$(grep -r --include 'sealos-manager*.zip' -le "$regexp" ./)
 
@@ -192,10 +194,6 @@ main() {
                 WORKDIR=$(mktemp -d -t tmp.XXXXXXXXXX) || exit 1
                 trap "command umount ${WORKDIR}/${OS}/rootfs; command rm -rf $WORKDIR" EXIT || exit 1
         fi
-
-        IMAGE_NAME=$(basename $IMAGE)
-        IMAGE_NAME="${IMAGE_NAME%.*}"
-        IMAGE_DIR=$(dirname $IMAGE)
 
         # Match and fix OS env
         if [ -z $OS ]; then
