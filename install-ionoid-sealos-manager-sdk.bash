@@ -119,7 +119,7 @@ while true; do
         shift
 done
 
-declare manager_dst=$(pwd)
+declare manager_dst="/var/run/install-ionoid/"
 declare MANAGER_FILE=sealos-manager-latest-${MACHINE}
 declare MANAGER_URL=""
 
@@ -170,11 +170,10 @@ download_sealos_manager() {
         fi
 
         trace curl -o "$DST" -C - -# -f "$MANAGER_URL"
-
 }
 
 install() {
-        if [ -z ${MACHINE} ] && [ ! -z ${CONFIG} ] && [ -f $CONFIG_JSON ]; then
+        if [ -z ${MACHINE} ] && [ ! -z ${CONFIG} ] && [ -f ${CONFIG} ]; then
                 arch=$(jq .API_PROJECT_DEVICE_ARCH ${CONFIG})
                 if [ "$arch" != "null" ]; then
                         MACHINE=$arch
@@ -208,6 +207,10 @@ install() {
         export WORKDIR=$scratch
         export IMAGE=$(realpath $IMAGE)
 
+
+        # Lets create directories again anyway
+        mkdir -p ${manager_dst}
+
         download_src=$URL/${MANAGER_FILE}.link
         download_dst=${manager_dst}/${MANAGER_FILE}.zip
         extract_dst=$scratch/${MANAGER_FILE}
@@ -218,6 +221,10 @@ install() {
         download_sealos_manager "$download_src" "$download_dst" || return
         echo
 
+        #
+        # From now we work on a private temporary directory
+        #
+
         trace unzip -o "$download_dst" -d "${extract_dst}" || return
         echo
 
@@ -226,6 +233,9 @@ install() {
         target_dir=$(basename -- $MANAGER_URL)
         target_dir="${target_dir%.*}"
 
+        #
+        # Work on images and install from build-os.bash
+        #
         if [ ! -z $IMAGE ]; then
                 if [ ! -f $IMAGE ]; then
                         echo "Error: can not locate image ${IMAGE}"
