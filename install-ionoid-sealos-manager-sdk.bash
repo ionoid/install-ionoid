@@ -231,7 +231,7 @@ install() {
 
         # From now we work on a private $WORKDIR
         # Unzip sealos-manager into private scratch $WORKDIR
-        trace unzip -o "$download_dst" -d "${extract_dst}" || return
+        trace unzip -q -o "$download_dst" -d "${extract_dst}" || return
         echo
 
         # Get sealos-manager version target dir and install
