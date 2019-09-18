@@ -134,7 +134,7 @@ download_build_os_script() {
 
         if trace which curl >/dev/null; then
                 echo "Downloading Build OS script: $BUILD_URL"
-                curl -# "$BUILD_URL" > "$build_os_file" || exit
+                curl -o "$build_os_file" -s -C - -# -f "$BUILD_URL" || exit 1
                 chmod 775 "$build_os_file"
         else
                 echo "Error: failed 'curl' must be installed to download files." >&2
@@ -211,7 +211,7 @@ install() {
         export WORKDIR=$scratch
         export IMAGE=$(realpath $IMAGE)
 
-        MANAGER_FILE=""sealos-manager-latest-${MACHINE}
+        MANAGER_FILE="sealos-manager-latest-${MACHINE}"
 
         # Lets create directories again anyway
         mkdir -p ${manager_dst}
