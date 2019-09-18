@@ -10,6 +10,8 @@
 URL=https://raw.githubusercontent.com/opendevices/packages/master/sealos-manager/releases/
 BUILD_URL=https://raw.githubusercontent.com/ionoid/install-ionoid/master/build-os.bash
 MANAGER_PACKAGE=sealos-manager
+MANAGER_FILE=""
+MANGER_URL=""
 
 COMMAND=${0##*/}
 
@@ -209,8 +211,8 @@ install() {
         export WORKDIR=$scratch
         export IMAGE=$(realpath $IMAGE)
 
-        declare MANAGER_FILE="sealos-manager-latest-${MACHINE}"
-        declare MANAGER_URL=""
+        echo "$COMMAND: Working on Project MACHINE '${MACHINE}'" >&2
+        MANAGER_FILE="sealos-manager-latest-${MACHINE}"
 
         # Lets create directories again anyway
         mkdir -p ${manager_dst}
@@ -223,7 +225,7 @@ install() {
         download_build_os_script
 
         # Download from github.
-        echo "Selected SealOS Manager: $MANAGER_FILE"
+        echo "$COMMAND: Selected SealOS Manager version: $MANAGER_FILE" >&2
         download_sealos_manager "$download_src" "$download_dst" || return
         echo
 
