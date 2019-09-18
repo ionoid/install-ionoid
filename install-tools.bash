@@ -15,6 +15,7 @@ export DESTDIR=$DESTDIR
 export MACHINE=$MACHINE
 export IMAGE=$(realpath $IMAGE)
 export CONFIG=$(realpath $CONFIG)
+export WORKDIR=$WORKDIR
 
 dir=$(pwd)
 

@@ -202,8 +202,10 @@ install() {
         fi
 
         export OS=$OS
-        export CONFIG=$(realpath $CONFIG)
         export DESTDIR=$DESTDIR
+
+
+        export CONFIG=$(realpath $CONFIG)
         export MACHINE=$MACHINE
         export WORKDIR=$scratch
         export IMAGE=$(realpath $IMAGE)
