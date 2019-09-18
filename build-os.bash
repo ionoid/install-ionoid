@@ -136,6 +136,10 @@ zip_os_image()
         mkdir -p ${IMAGE_DIR}/output/ || exit 1
         echo "Install ${OS}: compressing ${UNZIPPED_IMAGE} into ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp"
         zip -q -j ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp $IMAGE_DIR/$UNZIPPED_IMAGE
+        if [[ $? -ne 0 ]]; then
+                echo "Install ${OS}: failed zip Image operation with: $?" >&2
+                exit 2
+        fi
 
         # then mv file
         echo "Install ${OS}: zip ${IMAGE_DIR}/output/${IMAGE_NAME}.zip finishing"
