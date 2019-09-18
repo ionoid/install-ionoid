@@ -141,15 +141,21 @@ zip_os_image()
         echo "Install ${OS}: zip ${IMAGE_DIR}/output/${IMAGE_NAME}.zip finishing"
         mv -f ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp ${IMAGE_DIR}/output/${IMAGE_NAME}.zip || exit 1
 
+        # Clean after finishing
         rm -fr $IMAGE_DIR/$UNZIPPED_IMAGE
 }
 
 unzip_os_image() {
         rm -f $IMAGE_DIR/$UNZIPPED_IMAGE
 
-        # unzip in same directory for space storage
-        echo "Install ${OS}: decompressing ${IMAGE} into ${IMAGE_DIR}"
-        unzip -j -o "$IMAGE" -d "$IMAGE_DIR" || exit 1
+        # Check if the File already exists and is unzipped
+        if [ -f "$IMAGE_DIR/$UNZIPPED_IMAGE" ]; then
+                echo "Install ${OS}: found already raw image, ignore unzip operation"
+        else
+                # unzip in same directory for space storage
+                echo "Install ${OS}: decompressing ${IMAGE} into ${IMAGE_DIR}"
+                unzip -j -o "$IMAGE" -d "$IMAGE_DIR" || exit 1
+        fi
 }
 
 prepare_raspbian_os() {
