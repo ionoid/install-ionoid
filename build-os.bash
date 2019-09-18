@@ -34,11 +34,36 @@ SEALOS_DIR=$SEALOS_DIR
 IMAGE_NAME=$IMAGE_NAME
 IMAGE_DIR=$IMAGE_DIR
 
+export STATUS_FILE=$STATUS_FILE
+
 SEALOS_MANAGER_ZIPPED=$(grep -r --include 'sealos-manager*.zip' -le "$regexp" ./)
 
 SEALOS_MANAGER_UNZIPPED="${SEALOS_MANAGER_ZIPPED%.*}/"
 OSFILE=$(grep -r --include '${OS}*.zip' -le "$regexp" ./)
 
+schedule_feedback() {
+
+        if [ -z ${STATUS_FILE} ]; then
+                return
+        fi
+
+        file=$STATUS_FILE
+        percentage=$4
+        status=$2
+        message=$3
+        image=$5
+
+        PAYLOAD="{ \
+                \"progress\": ${percentage}, \
+                \"status\": \"${status}\", \
+                \"message\": \"${message}\", \
+                \"image\": \"${image}\" \
+        }"
+
+        echo $PAYLOAD | tee $file.tmp
+        chown www-data.www-data ${file}.tmp
+        mv -f ${file}.tmp ${file}
+}
 
 check_file() {
         if [ ! -e $1 ]; then
@@ -61,6 +86,8 @@ cp_config_to_sealos_manager() {
 
 cp_config_to_bootfs() {
         if [ ! -z ${CONFIG_JSON} ] && [ -f $CONFIG_JSON ]; then
+                schedule_feedback $STATUS_FILE "in_progress" \
+                        "Configuring the ${IMAGE_NAME} image" 60 "null"
                 echo "Install ${OS}: copy ${CONFIG_JSON} into $BOOTFS"
                 cp -t $BOOTFS $CONFIG_JSON
                 chmod 0600 $SEALOS_DIR/prod/config.json
@@ -125,6 +152,9 @@ install_sealos_manager()
 
         cd $SEALOS_DIR || exit 2
 
+        schedule_feedback $STATUS_FILE "in_progress" \
+                "Installing SealOS Manager tools on ${IMAGE_NAME} image" 50 "null"
+
         echo "Install ${OS}: Installing sealos-manager into $ROOTFS"
         DESTDIR=$ROOTFS ./install.bash
 
@@ -135,6 +165,8 @@ zip_os_image()
 {
         mkdir -p ${IMAGE_DIR}/output/ || exit 1
         echo "Install ${OS}: compressing ${UNZIPPED_IMAGE} into ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp"
+        schedule_feedback $STATUS_FILE "in_progress" \
+                "Compressing ${IMAGE_NAME} image into Zip file" 70 "null"
         zip -q -j ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp $IMAGE_DIR/$UNZIPPED_IMAGE
         if [[ $? -ne 0 ]]; then
                 echo "Install ${OS}: failed zip Image operation with: $?" >&2
@@ -225,6 +257,9 @@ main() {
         umount $ROOTFS > /dev/null 2>&1
         umount $BOOTFS > /dev/null 2>&1
         command rm -fr "$ROOTFS"
+
+        schedule_feedback $STATUS_FILE "in_progress" \
+                "Cleaning of installation tools on ${IMAGE_NAME} image" 85 "null"
 
         exit 0
 }

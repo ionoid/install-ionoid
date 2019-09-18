@@ -149,8 +149,6 @@ schedule_feedback() {
                 \"image\": \"${image}\" \
         }"
 
-        echo "writing $PAYLOAD to $file.tmp" >&2
-
         echo $PAYLOAD | tee $file.tmp
         chown www-data.www-data ${file}.tmp
         mv -f ${file}.tmp ${file}
@@ -272,7 +270,7 @@ install() {
 
         # Get sealos-manager version target dir and install
         schedule_feedback $STATUS_FILE "in_progress" \
-                "Starting Intallation using ${IMAGE_NAME}" 40 "null"
+                "Starting Intallation using ${IMAGE_NAME} OS" 40 "null"
         echo "Starting Installation ${MANAGER_FILE} "
         target_dir=$(basename -- $MANAGER_URL)
         target_dir="${target_dir%.*}"
