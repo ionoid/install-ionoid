@@ -13,6 +13,8 @@ MANAGER_PACKAGE=sealos-manager
 MANAGER_FILE=""
 MANGER_URL=""
 
+export STATUS_FILE=$STATUS_FILE
+
 COMMAND=${0##*/}
 
 usage() {
@@ -128,6 +130,32 @@ trace() {
         "$@"
 }
 
+schedule_feedback() {
+
+        if [ -z ${STATUS_FILE} ]; then
+                return
+        fi
+
+        file=$STATUS_FILE
+        percentage=$4
+        status=$2
+        message=$3
+        image=$5
+
+        PAYLOAD="{ \
+                \"progress\": ${percentage}, \
+                \"status\": \"${status}\", \
+                \"message\": \"${message}\", \
+                \"image\": \"${image}\" \
+        }"
+
+        echo "writing $PAYLOAD to $file.tmp" >&2
+
+        echo $PAYLOAD | tee $file.tmp
+        chown www-data.www-data ${file}.tmp
+        mv -f ${file}.tmp ${file}
+}
+
 # Downloads build-os script and save it into $scratch workdir
 download_build_os_script() {
         build_os_file="$scratch/build-os.bash"
@@ -221,11 +249,16 @@ install() {
         download_dst=${manager_dst}/${MANAGER_FILE}.zip
         extract_dst=$scratch/${MANAGER_FILE}
 
+        schedule_feedback $STATUS_FILE "in_progress" \
+                "Downloading build OS tools" 33 "null"
+
         # Download build os and store it into scratch $WORKDIR
         download_build_os_script
 
         # Download from github.
         echo "$COMMAND: Selected SealOS Manager version: $MANAGER_FILE" >&2
+        schedule_feedback $STATUS_FILE "in_progress" \
+                "Downloading SealOS Manager tools" 35 "null"
         download_sealos_manager "$download_src" "$download_dst" || return
         echo
 
@@ -234,7 +267,12 @@ install() {
         trace unzip -q -o "$download_dst" -d "${extract_dst}" || return
         echo
 
+        export IMAGE_NAME=$(basename $IMAGE)
+        export IMAGE_NAME="${IMAGE_NAME%.*}"
+
         # Get sealos-manager version target dir and install
+        schedule_feedback $STATUS_FILE "in_progress" \
+                "Starting Intallation using ${IMAGE_NAME}" 40 "null"
         echo "Starting Installation ${MANAGER_FILE} "
         target_dir=$(basename -- $MANAGER_URL)
         target_dir="${target_dir%.*}"
@@ -250,8 +288,6 @@ install() {
                 echo "Using $IMAGE as a target image"
 
                 # Lets get image name and directory
-                export IMAGE_NAME=$(basename $IMAGE)
-                export IMAGE_NAME="${IMAGE_NAME%.*}"
                 export IMAGE_DIR=$(dirname $IMAGE)
 
                 export SEALOS_DIR="${extract_dst}/${target_dir}"
@@ -280,6 +316,9 @@ install() {
 
                 echo "Installing Ionoid Tools finished"
         fi
+
+        schedule_feedback $STATUS_FILE "in_progress" \
+                "Installation of tools on ${IMAGE_NAME} finished" 85 "null"
 
         echo
 }
