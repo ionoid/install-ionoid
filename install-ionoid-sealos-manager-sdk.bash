@@ -175,7 +175,7 @@ download_sealos_manager() {
 
 install() {
         if [ -z ${MACHINE} ] && [ ! -z ${CONFIG} ] && [ -f ${CONFIG} ]; then
-                arch=$(jq .API_PROJECT_DEVICE_ARCH ${CONFIG})
+                arch=$(jq -r .API_PROJECT_DEVICE_ARCH ${CONFIG})
                 if [ "$arch" != "null" ]; then
                         MACHINE=$arch
                 fi
