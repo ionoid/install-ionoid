@@ -135,7 +135,7 @@ zip_os_image()
 {
         mkdir -p ${IMAGE_DIR}/output/ || exit 1
         echo "Install ${OS}: compressing ${UNZIPPED_IMAGE} into ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp"
-        zip -j ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp $IMAGE_DIR/$UNZIPPED_IMAGE
+        zip -q -j ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp $IMAGE_DIR/$UNZIPPED_IMAGE
 
         # then mv file
         echo "Install ${OS}: zip ${IMAGE_DIR}/output/${IMAGE_NAME}.zip finishing"
@@ -146,15 +146,13 @@ zip_os_image()
 }
 
 unzip_os_image() {
-        rm -f $IMAGE_DIR/$UNZIPPED_IMAGE
-
         # Check if the File already exists and is unzipped
         if [ -f "$IMAGE_DIR/$UNZIPPED_IMAGE" ]; then
-                echo "Install ${OS}: found already raw image, ignore unzip operation"
+                echo "Install ${OS}: found already raw '${IMAGE_DIR}/${UNZIPPED_IMAGE}' image, ignore unzip operation"
         else
                 # unzip in same directory for space storage
                 echo "Install ${OS}: decompressing ${IMAGE} into ${IMAGE_DIR}"
-                unzip -j -o "$IMAGE" -d "$IMAGE_DIR" || exit 1
+                unzip -q -j -o "$IMAGE" -d "$IMAGE_DIR" || exit 1
         fi
 }
 
