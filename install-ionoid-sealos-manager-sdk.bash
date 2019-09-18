@@ -120,8 +120,6 @@ while true; do
 done
 
 declare manager_dst="/var/run/install-ionoid/"
-declare MANAGER_FILE=""
-declare MANAGER_URL=""
 
 trace() {
         echo "$@" >&2
@@ -211,7 +209,8 @@ install() {
         export WORKDIR=$scratch
         export IMAGE=$(realpath $IMAGE)
 
-        MANAGER_FILE="sealos-manager-latest-${MACHINE}"
+        declare MANAGER_FILE="sealos-manager-latest-${MACHINE}"
+        declare MANAGER_URL=""
 
         # Lets create directories again anyway
         mkdir -p ${manager_dst}
@@ -224,6 +223,7 @@ install() {
         download_build_os_script
 
         # Download from github.
+        echo "Selected SealOS Manager: $MANAGER_FILE"
         download_sealos_manager "$download_src" "$download_dst" || return
         echo
 
