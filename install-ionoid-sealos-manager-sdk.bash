@@ -236,7 +236,6 @@ install() {
 
         export CONFIG=$(realpath $CONFIG)
         export MACHINE=$MACHINE
-        export WORKDIR=$scratch
         export IMAGE=$(realpath $IMAGE)
 
         echo "$COMMAND: Working on Project MACHINE '${MACHINE}'" >&2
@@ -301,7 +300,14 @@ install() {
                 # Lets get image name and directory
                 export IMAGE_DIR=$(dirname $IMAGE)
 
-                trace cd "$scratch"
+                if [ "$BACKEND_BUILD" = "true" ]; then
+                        local mountdir=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 12)
+                        export WORKDIR="/run/shm/${mountdir}"
+                else
+                        # If not a backend build then cd into $scratch
+                        export WORKDIR=$scratch
+                        trace cd "$scratch"
+                fi
 
                 if [ "$UID" = "0" ]; then
                         trace "./build-os.bash" || return
