@@ -233,8 +233,10 @@ main() {
 
         if [ -z ${WORKDIR} ]; then
                 WORKDIR=$(mktemp -d -t tmp.XXXXXXXXXX) || exit 1
-                trap "command umount ${WORKDIR}/${OS}/rootfs; command rm -rf $WORKDIR" EXIT || exit 1
         fi
+
+        # Make sure to clean $WORKDIR
+        trap "command umount ${WORKDIR}/${OS}/rootfs; command rm -rf $WORKDIR" EXIT || exit 1
 
         # Match and fix OS env
         if [ -z $OS ]; then
