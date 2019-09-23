@@ -15,6 +15,7 @@ MANGER_URL=""
 
 # STATUS FILE is used by our backend of automatic build-os
 export STATUS_FILE=$STATUS_FILE
+export BACKEND_BUILD=$BACKEND_BUILD
 
 COMMAND=${0##*/}
 
@@ -124,7 +125,7 @@ while true; do
         shift
 done
 
-declare manager_dst="/var/run/install-ionoid/"
+declare manager_dst="/run/install-ionoid/"
 
 trace() {
         echo "$@" >&2
@@ -252,7 +253,7 @@ install() {
 
         download_src=$URL/${MANAGER_FILE}.link
         download_dst=${manager_dst}/${MANAGER_FILE}.zip
-        extract_dst=$scratch/${MANAGER_FILE}
+        extract_dst=$manager_dst/${MANAGER_FILE}
 
         schedule_feedback $STATUS_FILE "in_progress" \
                 "Downloading build OS tools" 33 "null"
