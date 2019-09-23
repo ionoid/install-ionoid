@@ -195,7 +195,8 @@ unzip_os_image() {
 prepare_raspbian_os() {
         echo "Start building ${OS}"
 
-        cp_config_to_sealos_manager
+        # Deprecated for security
+        # cp_config_to_sealos_manager
 
         UNZIPPED_IMAGE=${IMAGE_NAME}.img
         unzip_os_image
