@@ -13,6 +13,7 @@ MANAGER_PACKAGE=sealos-manager
 MANAGER_FILE=""
 MANGER_URL=""
 
+# STATUS FILE is used by our backend of automatic build-os
 export STATUS_FILE=$STATUS_FILE
 
 COMMAND=${0##*/}
