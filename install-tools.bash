@@ -9,7 +9,7 @@
 
 bash=$(which bash)
 
-URL=https://raw.githubusercontent.com/ionoid/install-ionoid/master/install-ionoid-sealos-manager-sdk.bash
+URL=https://build-os.ionoid.net/tools/install-ionoid/install-ionoid-sealos-manager-sdk.bash
 
 export DESTDIR=$DESTDIR
 export MACHINE=$MACHINE
