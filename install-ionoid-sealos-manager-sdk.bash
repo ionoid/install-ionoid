@@ -156,9 +156,9 @@ schedule_feedback() {
         mv -f ${file}.tmp ${file}
 }
 
-# Downloads build-os script and save it into $scratch workdir
+# Downloads build-os script and save it if necessary
 download_build_os_script() {
-        build_os_file="./build-os.bash"
+        build_os_file=$1
 
         if [ -f $build_os_file ]; then
                 chmod 775 "$build_os_file"
@@ -262,9 +262,6 @@ install() {
         schedule_feedback $STATUS_FILE "in_progress" \
                 "Downloading build OS tools" 33 "null"
 
-        # Download build os and store it into scratch $WORKDIR
-        download_build_os_script
-
         # Download from github.
         echo "$COMMAND: Selected SealOS Manager version: $MANAGER_FILE" >&2
         schedule_feedback $STATUS_FILE "in_progress" \
@@ -306,9 +303,12 @@ install() {
                 export IMAGE_DIR=$(dirname $IMAGE)
 
                 if [ "$BACKEND_BUILD" = "true" ]; then
+                        # Download build os and store it into scratch $WORKDIR
+                        download_build_os_script "./build-os.bash"
                         local mountdir=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 12)
                         export WORKDIR="/run/shm/${mountdir}"
                 else
+                        download_build_os_script "$scratch/build-os.bash"
                         # If not a backend build then cd into $scratch
                         export WORKDIR=$scratch
                         trace cd "$scratch"
