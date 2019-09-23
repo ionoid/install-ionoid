@@ -90,7 +90,7 @@ cp_config_to_bootfs() {
                         "Configuring the ${IMAGE_NAME} image" 60 "null"
                 echo "Install ${OS}: copy ${CONFIG_JSON} into $BOOTFS"
                 cp -t $BOOTFS $CONFIG_JSON
-                chmod 0600 $SEALOS_DIR/prod/config.json
+                chmod 0600 $BOOTFS/config.json
         fi
 }
 
