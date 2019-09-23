@@ -268,25 +268,30 @@ install() {
         download_sealos_manager "$download_src" "$download_dst" || return
         echo
 
-        # From now we work on a private $WORKDIR
-        # Unzip sealos-manager into private scratch $WORKDIR
-        trace unzip -q -o "$download_dst" -d "${extract_dst}" || return
-        echo
+        # Get SealOS Manager Version into target_dir
+        target_dir=$(basename -- $MANAGER_URL)
+        target_dir="${target_dir%.*}"
+        export SEALOS_DIR="${extract_dst}/${target_dir}"
+
+        # Before unzip check if sealos-manager was already extracted
+        if [ ! -f "${SEALOS_DIR}/prod/machine" ]; then
+                trace unzip -q -o "$download_dst" -d "${extract_dst}" || return
+                echo
+        fi
+
+        # SealOS Manager now is extracted at location $extract_dst/$target_dir
 
         export IMAGE_NAME=$(basename $IMAGE)
         export IMAGE_NAME="${IMAGE_NAME%.*}"
 
-        # Get sealos-manager version target dir and install
         schedule_feedback $STATUS_FILE "in_progress" \
                 "Starting Intallation using ${IMAGE_NAME} OS" 40 "null"
-        echo "Starting Installation ${MANAGER_FILE} "
-        target_dir=$(basename -- $MANAGER_URL)
-        target_dir="${target_dir%.*}"
+        echo "Starting Installation ${target_dir}"
 
         #
         # Work on images and install from build-os.bash
         #
-        if [ ! -z $IMAGE ]; then
+        if [ -n $IMAGE ]; then
                 if [ ! -f $IMAGE ]; then
                         echo "Error: can not locate image ${IMAGE}"
                         exit 1
@@ -296,7 +301,6 @@ install() {
                 # Lets get image name and directory
                 export IMAGE_DIR=$(dirname $IMAGE)
 
-                export SEALOS_DIR="${extract_dst}/${target_dir}"
                 trace cd "$scratch"
 
                 if [ "$UID" = "0" ]; then
