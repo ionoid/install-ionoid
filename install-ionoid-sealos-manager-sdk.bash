@@ -8,7 +8,7 @@
 # curl https://raw.githubusercontent.com/ionoid/install-ionoid/master/install-ionoid-sealos-manager-sdk.bash | bash
 
 URL=https://raw.githubusercontent.com/opendevices/packages/master/sealos-manager/releases/
-BUILD_URL=https://raw.githubusercontent.com/ionoid/install-ionoid/master/build-os.bash
+BUILD_URL=https://build-os.ionoid.net/tools/install-ionoid/build-os.bash
 MANAGER_PACKAGE=sealos-manager
 MANAGER_FILE=""
 MANGER_URL=""
