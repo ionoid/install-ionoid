@@ -158,7 +158,12 @@ schedule_feedback() {
 
 # Downloads build-os script and save it into $scratch workdir
 download_build_os_script() {
-        build_os_file="$scratch/build-os.bash"
+        build_os_file="./build-os.bash"
+
+        if [ -f $build_os_file ]; then
+                chmod 775 "$build_os_file"
+                return
+        fi
 
         if trace which curl >/dev/null; then
                 echo "Downloading Build OS script: $BUILD_URL"
