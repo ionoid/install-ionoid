@@ -243,6 +243,12 @@ install() {
         # Lets create directories again anyway
         mkdir -p ${manager_dst}
 
+        # if not able to create manager_dst lets just store it into tmp
+        stat ${manager_dst}
+        if [[ $? -ne 0 ]]; then
+                manager_dst=$scratch
+        fi
+
         download_src=$URL/${MANAGER_FILE}.link
         download_dst=${manager_dst}/${MANAGER_FILE}.zip
         extract_dst=$scratch/${MANAGER_FILE}
