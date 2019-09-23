@@ -250,8 +250,7 @@ install() {
         mkdir -p ${manager_dst}
 
         # if not able to create manager_dst lets just store it into tmp
-        stat ${manager_dst}
-        if [[ $? -ne 0 ]]; then
+        if [ ! -d ${manager_dst} ]; then
                 manager_dst=$scratch
         fi
 
