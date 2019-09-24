@@ -133,7 +133,7 @@ umount_rootfs()
         echo "Install ${OS}: umounted rootfs ${ROOTFS}"
 }
 
-unmount_bootfs()
+umount_bootfs()
 {
         sync;sync;
 
@@ -200,7 +200,9 @@ prepare_raspbian_os() {
         BOOTFS="${WORKDIR}/$OS/rootfs/boot"
 
         # Make sure to clean $WORKDIR
-        trap "command umount ${BOOTFS}; command unmount ${ROOTFS}; command rm -rf $WORKDIR" EXIT || exit 1
+        trap "command umount ${BOOTFS} > /dev/null 2>&1; \
+                command umount ${ROOTFS} > /dev/null 2>&1; \
+                command rm -rf $WORKDIR" EXIT || exit 1
 
         # Deprecated for security
         # cp_config_to_sealos_manager
@@ -215,7 +217,7 @@ prepare_raspbian_os() {
 
         mount_bootfs
         cp_config_to_bootfs
-        unmount_bootfs
+        umount_bootfs
 
         zip_os_image
 
