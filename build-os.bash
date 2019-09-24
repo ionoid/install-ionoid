@@ -195,6 +195,13 @@ unzip_os_image() {
 prepare_raspbian_os() {
         echo "Start building ${OS}"
 
+        # Lets set rootfs and bootfs filesystems paths
+        ROOTFS="${WORKDIR}/$OS/rootfs"
+        BOOTFS="${WORKDIR}/$OS/rootfs/boot"
+
+        # Make sure to clean $WORKDIR
+        trap "command umount ${BOOTFS}; command unmount ${ROOTFS}; command rm -rf $WORKDIR" EXIT || exit 1
+
         # Deprecated for security
         # cp_config_to_sealos_manager
 
@@ -235,19 +242,12 @@ main() {
                 WORKDIR=$(mktemp -d -t tmp.XXXXXXXXXX) || exit 1
         fi
 
-        # Make sure to clean $WORKDIR
-        trap "command umount ${WORKDIR}/${OS}/rootfs; command rm -rf $WORKDIR" EXIT || exit 1
-
         # Match and fix OS env
         if [ -z $OS ]; then
                 if [[ $IMAGE == *"raspbian"* ]]; then
                         OS="raspbian"
                 fi
         fi
-
-        # Lets set rootfs and bootfs filesystems paths
-        ROOTFS="${WORKDIR}/$OS/rootfs"
-        BOOTFS="${WORKDIR}/$OS/rootfs/boot"
 
         if [ "$OS" = "raspbian" ]; then
                 prepare_raspbian_os
@@ -257,9 +257,6 @@ main() {
         fi
 
         echo "Build OS '${OS}' into '${IMAGE_DIR}/output/${IMAGE_NAME}.zip' finished"
-        umount $ROOTFS > /dev/null 2>&1
-        umount $BOOTFS > /dev/null 2>&1
-        command rm -fr "$ROOTFS"
 
         schedule_feedback $STATUS_FILE "in_progress" \
                 "Cleaning of installation tools on ${IMAGE_NAME} image" 85 "null"
