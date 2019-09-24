@@ -167,7 +167,7 @@ zip_os_image()
         echo "Install ${OS}: compressing ${UNZIPPED_IMAGE} into ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp"
         schedule_feedback $STATUS_FILE "in_progress" \
                 "Compressing ${IMAGE_NAME} image into Zip file" 70 "null"
-        zip -q -j ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp $IMAGE_DIR/$UNZIPPED_IMAGE
+        zip -5 -q -j ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp $IMAGE_DIR/$UNZIPPED_IMAGE
         if [[ $? -ne 0 ]]; then
                 echo "Install ${OS}: failed zip Image operation with: $?" >&2
                 exit 2
