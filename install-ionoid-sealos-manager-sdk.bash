@@ -265,6 +265,8 @@ install() {
         echo "$COMMAND: Selected SealOS Manager version: $MANAGER_FILE" >&2
         schedule_feedback $STATUS_FILE "in_progress" \
                 "Downloading SealOS Manager tools" 35 "null"
+
+        # Download SealOS Manager has to be called to resolve manager version
         download_sealos_manager "$download_src" "$download_dst" || return
         echo
 
