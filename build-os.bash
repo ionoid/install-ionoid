@@ -175,7 +175,7 @@ zip_os_image()
 
         # then mv file
         echo "Install ${OS}: zip ${IMAGE_DIR}/output/${IMAGE_NAME}.zip finishing"
-        mv -f ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp ${IMAGE_DIR}/output/${IMAGE_NAME}.zip || exit 1
+        mv -f ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp ${IMAGE_DIR}/output/${IMAGE_NAME}-ionoid.zip || exit 1
 
         # Clean after finishing
         rm -fr $IMAGE_DIR/$UNZIPPED_IMAGE
