@@ -156,6 +156,17 @@ schedule_feedback() {
         mv -f ${file}.tmp ${file}
 }
 
+# Check if kpartx is installed first
+check_for_kpartx() {
+        which kpartx
+        if [[ $? -ne 0 ]]; then
+                echo "$COMMAND: Error: can not find kpartx, make sure to install it before" >&2
+                echo "$COMMAND: for Debian based distos: sudo apt-get install kpartx" >&2
+                echo "$COMMAND: for Fedora based distos: sudo dnf install kpartx" >&2
+                exit 2
+        fi
+}
+
 # Downloads build-os script and save it if necessary
 download_build_os_script() {
         build_os_file=$1
@@ -234,6 +245,8 @@ install() {
                 echo "$COMMAND: ARCH '$MACHINE' value not supported." >&2
                 exit 1
         fi
+
+        check_for_kpartx
 
         export OS=$OS
         export DESTDIR=$DESTDIR
