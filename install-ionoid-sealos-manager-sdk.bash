@@ -16,6 +16,7 @@ MANGER_URL=""
 # STATUS FILE is used by our backend of automatic build-os
 export STATUS_FILE=$STATUS_FILE
 export BACKEND_BUILD=$BACKEND_BUILD
+export BUILDOS_LOCK=$BUILDOS_LOCK
 
 COMMAND=${0##*/}
 
@@ -157,7 +158,7 @@ schedule_feedback() {
 }
 
 # Check if kpartx is installed first
-check_for_kpartx() {
+check_for_losetup_kpartx() {
         which kpartx
         if [[ $? -ne 0 ]]; then
                 echo "$COMMAND: Error: can not find 'kpartx', make sure to install it before" >&2
