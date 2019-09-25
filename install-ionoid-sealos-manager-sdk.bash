@@ -328,8 +328,9 @@ install() {
                 if [ "$BACKEND_BUILD" = "true" ]; then
                         # Download build os and store it into scratch $WORKDIR
                         download_build_os_script "./build-os.bash"
-                        local mountdir=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 12)
-                        export WORKDIR="/run/shm/${mountdir}"
+
+                        # Lets track mounts
+                        export WORKDIR="/run/shm/${OUTPUTDIR}"
                 else
                         download_build_os_script "$scratch/build-os.bash"
                         # If not a backend build then cd into $scratch
