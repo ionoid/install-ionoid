@@ -36,6 +36,15 @@ IMAGE_DIR=$IMAGE_DIR
 
 export STATUS_FILE=$STATUS_FILE
 
+declare CLEANED=0
+declare ROOTFS=""
+declare BOOTFS=""
+declare -a MAPPER_PARTITIONS
+declare LOOP_DEVICE=""
+declare LOCKFD=99
+declare LOCKFILE=$BUILDOS_LOCK
+declare CLEANED_LOCK=0
+
 SEALOS_MANAGER_ZIPPED=$(grep -r --include 'sealos-manager*.zip' -le "$regexp" ./)
 
 SEALOS_MANAGER_UNZIPPED="${SEALOS_MANAGER_ZIPPED%.*}/"
@@ -111,8 +120,8 @@ mount_rootfs()
                 mkdir -p $ROOTFS
         fi
 
-        mount -o loop,offset=$OFFSET_ROOTFS $IMAGE_DIR/$UNZIPPED_IMAGE $ROOTFS || exit 2
-        echo "Install ${OS}: mounted rootfs of ${IMAGE} at ${ROOTFS}"
+        mount ${MAPPER_PARTITIONS[1]} $ROOTFS || exit 2
+        echo "Install ${OS}: mounted ${MAPPER_PARTITIONS[1]} at ${ROOTFS} of image ${UNZIPPED_IMAGE}"
 }
 
 mount_bootfs()
@@ -121,15 +130,15 @@ mount_bootfs()
                 mkdir -p $BOOTFS
         fi
 
-        mount -o loop,offset=$OFFSET_BOOTFS $IMAGE_DIR/$UNZIPPED_IMAGE $BOOTFS || exit 2
-        echo "Install ${OS}: mounted bootfs of ${IMAGE} at ${BOOTFS}"
+        mount ${MAPPER_PARTITIONS[0]} $BOOTFS || exit 2
+        echo "Install ${OS}: mounted ${MAPPER_PARTITIONS[0]} at ${BOOTFS} of image ${UNZIPPED_IMAGE}"
 }
 
 umount_rootfs()
 {
         sync;sync;
 
-        umount $ROOTFS || exit 2
+        umount $ROOTFS
         echo "Install ${OS}: umounted rootfs ${ROOTFS}"
 }
 
@@ -137,7 +146,7 @@ umount_bootfs()
 {
         sync;sync;
 
-        umount $BOOTFS || exit 2
+        umount $BOOTFS
         echo "Install ${OS}: umounted boot ${BOOTFS}"
 }
 
@@ -161,8 +170,7 @@ install_sealos_manager()
         cd $old_pwd
 }
 
-zip_os_image()
-{
+zip_os_image() {
         mkdir -p ${IMAGE_DIR}/output/ || exit 1
         echo "Install ${OS}: compressing ${UNZIPPED_IMAGE} into ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp"
         schedule_feedback $STATUS_FILE "in_progress" \
@@ -192,6 +200,118 @@ unzip_os_image() {
         fi
 }
 
+get_lock() {
+        if [ -f "$LOCKFILE" ]; then
+                flock -x -w 60 $LOCKFD;
+        fi
+}
+
+clean_lock() {
+        if [ -f "$LOCKFILE" ] || [ "${CLEANED_LOCK}" == 0 ]; then
+                flock -u $LOCKFD > /dev/null 2>&1
+                flock -xn $LOCKFD > /dev/null 2>&1
+
+                rm -f $LOCKFILE > /dev/null 2>&1
+
+                CLEANED_LOCK=1
+        fi
+}
+
+init_lock() {
+        if [ -n "$LOCKFILE" ]; then
+                eval "exec $LOCKFD>\"$LOCKFILE\""
+        fi
+}
+
+wait_for_loopdevices() {
+        # Lets wait for loop devices to show up
+        iter=0
+        while [ ! -e ${MAPPER_PARTITIONS[1]} ]; do
+                echo "Waiting for ${MAPPER_PARTITIONS[1]} to show up"
+                sleep 1
+                iter=$((${iter} + 1 ))
+                if [ ${iter} -gt 5 ]; then
+                        echo "Error: Timeout waiting for loop devices ${MAPPER_PARTITIONS[@]}"
+                        exit 2
+                fi
+        done
+}
+
+setup_raspbian_filesystem() {
+        echo "Install ${OS}: scanning ${UNZIPPED_IMAGE} for partitions"
+
+        declare -a lines
+
+        # Initialize lock
+        init_lock
+
+        # Get lock
+        get_lock
+
+
+        # Execute this under lock as we gonna probe for device loops
+        # We make sure to use the same reported loop devices
+
+        # IMPORTANT DO NOT REMOVE
+
+        while IFS= read -r line; do
+                lines+=($line)
+        done < <(kpartx -v -l $IMAGE_DIR/$UNZIPPED_IMAGE)
+
+        if [ "${#lines[@]}" == 16 ]; then
+                # Get BOOTFS
+                devline=${lines[0]}
+                MAPPER_PARTITIONS+=("/dev/mapper/$devline")
+
+                # Get ROOTFS
+                devline=${lines[6]}
+                MAPPER_PARTITIONS+=("/dev/mapper/$devline")
+
+                loopline=${lines[15]}
+                LOOP_DEVICE=$loopline
+        else
+                echo "Install ${OS}: Error unsupported partitions of ${UNZIPPED_IMAGE}" >&2
+                exit 2
+        fi
+
+        kpartx -v -a $IMAGE_DIR/$UNZIPPED_IMAGE
+        if [[ $? -ne 0 ]]; then
+                echo "Install ${OS}: Error kpartx failed to add partitions of ${UNZIPPED_IMAGE}" >&2
+                exit 2
+        fi
+
+        # Release device loops lock
+        clean_lock
+
+        # Wait outside of lock
+        wait_for_loopdevices
+
+        echo "Install ${OS}: Loop device attached at ${LOOP_DEVICE}"
+        echo "Install ${OS}: Boot partitions prepared at ${MAPPER_PARTITIONS[0]}"
+        echo "Install ${OS}: Root partitions prepared at ${MAPPER_PARTITIONS[1]}"
+}
+
+cleanup_raspbian_filesystem() {
+        if [ "${CLEANED}" == 1 ]; then
+                return
+        fi
+
+        clean_lock
+
+        umount ${BOOTFS} > /dev/null 2>&1
+        umount ${ROOTFS} > /dev/null 2>&1
+
+        kpartx -v -d "$IMAGE_DIR/$UNZIPPED_IMAGE" > /dev/null 2>&1
+
+        echo "install ${OS}: cleaning up ${MAPPER_PARTITIONS[@]}"
+        kpartx -v -d ${LOOP_DEVICE} > /dev/null 2>&1
+        losetup -d ${LOOP_DEVICE} > /dev/null 2>&1
+
+        rm -fr $WORKDIR > /dev/null 2>&1
+
+        CLEANED=1
+}
+
 prepare_raspbian_os() {
         echo "Start building ${OS}"
 
@@ -199,18 +319,20 @@ prepare_raspbian_os() {
         ROOTFS="${WORKDIR}/$OS/rootfs"
         BOOTFS="${WORKDIR}/$OS/rootfs/boot"
 
+        UNZIPPED_IMAGE=${IMAGE_NAME}.img
+
         # Make sure to clean $WORKDIR
-        trap "command umount ${BOOTFS} > /dev/null 2>&1; \
-                command umount ${ROOTFS} > /dev/null 2>&1; \
-                command rm -rf $WORKDIR" EXIT || exit 1
+        trap cleanup_raspbian_filesystem EXIT || exit 1
+
+        mkdir -p ${WORKDIR}
 
         # Deprecated for security
         # cp_config_to_sealos_manager
 
-        UNZIPPED_IMAGE=${IMAGE_NAME}.img
         unzip_os_image
 
-        get_raspbian_classic_img_rootfs_offset
+        setup_raspbian_filesystem
+
         mount_rootfs
         install_sealos_manager
         umount_rootfs
@@ -218,6 +340,8 @@ prepare_raspbian_os() {
         mount_bootfs
         cp_config_to_bootfs
         umount_bootfs
+
+        cleanup_raspbian_filesystem
 
         zip_os_image
 
