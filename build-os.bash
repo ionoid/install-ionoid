@@ -303,7 +303,7 @@ cleanup_raspbian_filesystem() {
 
         kpartx -v -d "$IMAGE_DIR/$UNZIPPED_IMAGE" > /dev/null 2>&1
 
-        echo "install ${OS}: cleaning up ${MAPPER_PARTITIONS[@]}"
+        echo "install ${OS}: cleaning up ${MAPPER_PARTITIONS[@]} of ${LOOP_DEVICE}"
         kpartx -v -d ${LOOP_DEVICE} > /dev/null 2>&1
         losetup -d ${LOOP_DEVICE} > /dev/null 2>&1
 
