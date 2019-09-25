@@ -160,9 +160,17 @@ schedule_feedback() {
 check_for_kpartx() {
         which kpartx
         if [[ $? -ne 0 ]]; then
-                echo "$COMMAND: Error: can not find kpartx, make sure to install it before" >&2
+                echo "$COMMAND: Error: can not find 'kpartx', make sure to install it before" >&2
                 echo "$COMMAND: for Debian based distos: sudo apt-get install kpartx" >&2
                 echo "$COMMAND: for Fedora based distos: sudo dnf install kpartx" >&2
+                exit 2
+        fi
+
+        which losetup
+        if [[ $? -ne 0 ]]; then
+                echo "$COMMAND: Error: can not find 'losetup', make sure to install it before" >&2
+                echo "$COMMAND: for Debian based distos: sudo apt-get install util-linux" >&2
+                echo "$COMMAND: for Fedora based distos: sudo dnf install fedora install util-linux" >&2
                 exit 2
         fi
 }
@@ -246,7 +254,7 @@ install() {
                 exit 1
         fi
 
-        check_for_kpartx
+        check_for_losetup_kpartx
 
         export OS=$OS
         export DESTDIR=$DESTDIR
