@@ -382,7 +382,7 @@ main() {
                 exit 1
         fi
 
-        echo "Build OS '${OS}' into '${IMAGE_DIR}/output/${IMAGE_NAME}.zip' finished"
+        echo "Build OS '${OS}' into '${IMAGE_DIR}/output/${IMAGE_NAME}-ionoid.zip' finished"
 
         schedule_feedback $STATUS_FILE "in_progress" \
                 "Cleaning of installation tools on ${IMAGE_NAME} image" 85 "null"
