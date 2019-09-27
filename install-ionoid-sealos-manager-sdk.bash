@@ -246,7 +246,7 @@ install() {
                 MACHINE="arm6"
         elif [ "$MACHINE" = "armv7" ] || [ "$MACHINE" = "ARMv7" ]; then
                 MACHINE="arm7"
-        elif [ "$MACHINE" = "x86-64" ]; then
+        elif [ "$MACHINE" = "x86-64" ] || [ "$MACHINE" = "x86_64" ]; then
                 MACHINE="amd64"
         fi        
 
