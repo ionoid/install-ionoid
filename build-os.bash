@@ -258,7 +258,7 @@ setup_raspbian_filesystem() {
                 lines+=($line)
         done < <(kpartx -v -l $IMAGE_DIR/$UNZIPPED_IMAGE)
 
-        if [ "${#lines[@]}" == 16 ]; then
+        if [ "${#lines[@]}" -ge 12 ]; then
                 # Get BOOTFS
                 devline=${lines[0]}
                 MAPPER_PARTITIONS+=("/dev/mapper/$devline")
@@ -267,7 +267,7 @@ setup_raspbian_filesystem() {
                 devline=${lines[6]}
                 MAPPER_PARTITIONS+=("/dev/mapper/$devline")
 
-                loopline=${lines[15]}
+                loopline=${lines[4]}
                 LOOP_DEVICE=$loopline
         else
                 echo "Install ${OS}: Error unsupported partitions of ${UNZIPPED_IMAGE}" >&2
