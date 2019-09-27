@@ -261,18 +261,22 @@ setup_raspbian_filesystem() {
 
         while IFS= read -r line; do
                 lines+=($line)
-        done < <(kpartx -v -l $IMAGE_DIR/$UNZIPPED_IMAGE)
+        done < <(kpartx -va $IMAGE_DIR/$UNZIPPED_IMAGE)
+        if [[ $? -ne 0 ]]; then
+                echo "Install ${OS}: Error kpartx failed to add partitions of ${UNZIPPED_IMAGE}" >&2
+                exit 2
+        fi
 
-        if [ "${#lines[@]}" -ge 12 ]; then
+        if [ "${#lines[@]}" -ge 18 ]; then
                 # Get BOOTFS
-                devline=${lines[0]}
+                devline=${lines[2]}
                 MAPPER_PARTITIONS+=("/dev/mapper/$devline")
 
                 # Get ROOTFS
-                devline=${lines[6]}
+                devline=${lines[11]}
                 MAPPER_PARTITIONS+=("/dev/mapper/$devline")
 
-                loopline=${lines[4]}
+                loopline=${lines[7]}
                 LOOP_DEVICE=$loopline
         else
                 echo "Install ${OS}: Error unsupported partitions of ${UNZIPPED_IMAGE}" >&2
@@ -281,11 +285,7 @@ setup_raspbian_filesystem() {
 
         echo "Install ${OS}: Found loop device at ${LOOP_DEVICE}"
 
-        kpartx -v -a $IMAGE_DIR/$UNZIPPED_IMAGE
-        if [[ $? -ne 0 ]]; then
-                echo "Install ${OS}: Error kpartx failed to add partitions of ${UNZIPPED_IMAGE}" >&2
-                exit 2
-        fi
+        #kpartx -v -a $IMAGE_DIR/$UNZIPPED_IMAGE
 
         # Release device loops lock
         clean_lock
