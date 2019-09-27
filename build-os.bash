@@ -44,6 +44,7 @@ declare LOOP_DEVICE=""
 declare LOCKFD=99
 declare LOCKFILE=$BUILDOS_LOCK
 declare CLEANED_LOCK=0
+declare DELETE_PATCHED_IMAGE="true"
 
 SEALOS_MANAGER_ZIPPED=$(grep -r --include 'sealos-manager*.zip' -le "$regexp" ./)
 
@@ -186,13 +187,17 @@ zip_os_image() {
         mv -f ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp ${IMAGE_DIR}/output/${IMAGE_NAME}-ionoid.zip || exit 1
 
         # Clean after finishing
-        rm -fr $IMAGE_DIR/$UNZIPPED_IMAGE
+        if [ "$DELETE_PATCHED_IMAGE" = "true" ]; then
+                echo "Install ${OS}: deleting Unzipped Image $IMAGE_DIR/$UNZIPPED_IMAGE"
+                rm -fr $IMAGE_DIR/$UNZIPPED_IMAGE
+        fi
 }
 
 unzip_os_image() {
         # Check if the File already exists and is unzipped
         if [ -f "$IMAGE_DIR/$UNZIPPED_IMAGE" ]; then
                 echo "Install ${OS}: found already raw '${IMAGE_DIR}/${UNZIPPED_IMAGE}' image, ignore unzip operation"
+                DELETE_PATCHED_IMAGE="false"
         else
                 # unzip in same directory for space storage
                 echo "Install ${OS}: decompressing ${IMAGE} into ${IMAGE_DIR}"
@@ -273,6 +278,8 @@ setup_raspbian_filesystem() {
                 echo "Install ${OS}: Error unsupported partitions of ${UNZIPPED_IMAGE}" >&2
                 exit 2
         fi
+
+        echo "Install ${OS}: Found loop device at ${LOOP_DEVICE}"
 
         kpartx -v -a $IMAGE_DIR/$UNZIPPED_IMAGE
         if [[ $? -ne 0 ]]; then
