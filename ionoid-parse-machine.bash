@@ -25,7 +25,7 @@ function parse_machine() {
         fi
 
         if [ ! -z ${CONFIG} ] && [ -f ${CONFIG} ]; then
-                arch=$(jq -r .API_PROJECT_DEVICE_ARCH ${CONFIG})
+                arch=$(jq -r .API_PROJECT_DEVICE_ARCH ${CONFIG} | tr -d '\n')
                 if [ "$arch" != "null" ]; then
                         validate_arch $arch
                 fi
