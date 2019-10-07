@@ -159,7 +159,7 @@ schedule_feedback() {
 }
 
 # Check if kpartx is installed first
-check_for_losetup_kpartx() {
+check_for_necessary_tools() {
         which kpartx
         if [[ $? -ne 0 ]]; then
                 echo "$COMMAND: Error: can not find 'kpartx', make sure to install it before" >&2
@@ -173,6 +173,14 @@ check_for_losetup_kpartx() {
                 echo "$COMMAND: Error: can not find 'losetup', make sure to install it before" >&2
                 echo "$COMMAND: for Debian based distos: sudo apt-get install util-linux" >&2
                 echo "$COMMAND: for Fedora based distos: sudo dnf install fedora install util-linux" >&2
+                exit 2
+        fi
+
+        which jq
+        if [[ $? -ne 0 ]]; then
+                echo "$COMMAND: Error: can not find 'jq (Command-line JSON processor)', make sure to install it before" >&2
+                echo "$COMMAND: for Debian based distos: sudo apt-get install jq" >&2
+                echo "$COMMAND: for Fedora based distos: sudo dnf install fedora install jq" >&2
                 exit 2
         fi
 }
@@ -229,39 +237,17 @@ download_sealos_manager() {
 }
 
 install() {
-        if [ -z ${MACHINE} ] && [ ! -z ${CONFIG} ] && [ -f ${CONFIG} ]; then
-                arch=$(jq -r .API_PROJECT_DEVICE_ARCH ${CONFIG})
-                if [ "$arch" != "null" ]; then
-                        MACHINE=$arch
-                fi
-        fi
+        check_for_necessary_tools
+
+        parse_machine ${MACHINE}
 
         # Check again
         if [ -z ${MACHINE} ]; then
                 echo "Error: machine arch is not set" >&2
-                usage
-        fi
-
-        if [ "$MACHINE" = "armv6" ] || [ "$MACHINE" = "ARMv6" ]; then
-                MACHINE="arm6"
-        elif [ "$MACHINE" = "armv7" ] || [ "$MACHINE" = "ARMv7" ]; then
-                MACHINE="arm7"
-        elif [ "$MACHINE" = "arm8" ] || [ "$MACHINE" = "ARMv8" ] || [ "$MACHINE" = "ARMv8-AArch64" ]; then
-                MACHINE="arm64"
-        elif [ "$MACHINE" = "x86-64" ] || [ "$MACHINE" = "x86_64" ]; then
-                MACHINE="amd64"
-        fi        
-
-        if [ "$MACHINE" != "arm6" ] && \
-           [ "$MACHINE" != "arm7" ] && \
-           [ "$MACHINE" != "arm64" ] && \
-           [ "$MACHINE" != "amd64" ] && \
-           [ "$MACHINE" != "x86" ]; then
-                echo "$COMMAND: ARCH '$MACHINE' value not supported." >&2
+                schedule_feedback $STATUS_FILE "error" \
+                        "Build OS failed passed Architecture Machine not supported" 0 "null"
                 exit 1
         fi
-
-        check_for_losetup_kpartx
 
         export OS=$OS
         export DESTDIR=$DESTDIR
