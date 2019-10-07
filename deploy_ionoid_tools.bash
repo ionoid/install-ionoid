@@ -2,6 +2,10 @@
 
 source ./environment
 
+echo "Checking git status: please commit and push upstream any pending changes"
+git status
+
+echo ""
 echo "Deploying  $TARGET  -  to Server $SERVER"
 
 # Lets clean previous deployments
