@@ -12,7 +12,7 @@ function validate_arch() {
         elif [ "$machine" = "arm8" ] || [ "$machine" = "ARMv8" ] || [ "$machine" = "ARMv8-AArch64" ]; then
                 machine="arm64"
         elif [ "$machine" = "x86-64" ] || [ "$machine" = "x86_64" ]; then
-                MACHINE="amd64"
+                machine="amd64"
         fi
 
         if [ "$machine" != "arm6" ] && \
@@ -29,12 +29,12 @@ function validate_arch() {
 
 function parse_machine() {
 
-        if [ -n ${MACHINE} ]; then
+        if [[ -n ${MACHINE} ]]; then
                 validate_arch ${MACHINE}
                 return
         fi
 
-        if [ ! -z ${CONFIG} ] && [ -f ${CONFIG} ]; then
+        if [[ ! -z ${CONFIG} ]] && [[ -f ${CONFIG} ]]; then
                 arch=$(jq -r .API_PROJECT_DEVICE_ARCH ${CONFIG} | tr -d '\n')
                 if [ "$arch" != "null" ]; then
                         validate_arch $arch
