@@ -200,7 +200,7 @@ download_sealos_manager() {
         SRC=$1
         DST=$2
 
-        MANAGER_URL=$(trace curl -# -f "$SRC")
+        MANAGER_URL=$(trace curl -s -# -f "$SRC")
 
         # already downloaded file ?
         if [ -f $DST ]; then
@@ -215,7 +215,7 @@ download_sealos_manager() {
                                         -- $MANAGER_URL 2>/dev/null | \
                                         grep -E -i "^(Content-Length:.*)|^(content-length:.*)" | \
                                         awk '{print $2}' | tr -d '\r')
-                        if [ "$size" = "$length" ]; then
+                        if [ "${size}" -eq "${length}" ]; then
                                 echo "Install: already found $DST size $size, do not download again"
                                         return
                         else
@@ -246,12 +246,17 @@ install() {
                 MACHINE="arm6"
         elif [ "$MACHINE" = "armv7" ] || [ "$MACHINE" = "ARMv7" ]; then
                 MACHINE="arm7"
+        elif [ "$MACHINE" = "arm8" ] || [ "$MACHINE" = "ARMv8" ] || [ "$MACHINE" = "ARMv8-AArch64" ]; then
+                MACHINE="arm64"
         elif [ "$MACHINE" = "x86-64" ] || [ "$MACHINE" = "x86_64" ]; then
                 MACHINE="amd64"
         fi        
 
-        if [ "$MACHINE" != "arm6" ] && [ "$MACHINE" != "arm7" ] && \
-           [ "$MACHINE" != "amd64" ] && [ "$MACHINE" != "x86" ]; then
+        if [ "$MACHINE" != "arm6" ] && \
+           [ "$MACHINE" != "arm7" ] && \
+           [ "$MACHINE" != "arm64" ] && \
+           [ "$MACHINE" != "amd64" ] && \
+           [ "$MACHINE" != "x86" ]; then
                 echo "$COMMAND: ARCH '$MACHINE' value not supported." >&2
                 exit 1
         fi
