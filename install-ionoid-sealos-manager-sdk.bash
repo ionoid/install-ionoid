@@ -282,8 +282,7 @@ install() {
         echo "$COMMAND: Working on Project MACHINE '${MACHINE}'" >&2
         MANAGER_FILE="sealos-manager-latest-${MACHINE}"
 
-        # Lets create directories again anyway
-        mkdir -p ${manager_dst}
+        mkdir -p ${manager_dst} > /dev/null 2>&1
 
         # if not able to create manager_dst lets just store it into tmp
         if [ ! -d ${manager_dst} ]; then
