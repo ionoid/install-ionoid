@@ -9,6 +9,7 @@
 
 URL=https://raw.githubusercontent.com/opendevices/packages/master/sealos-manager/releases/
 BUILD_URL=https://build-os.ionoid.net/tools/install-ionoid/build-os.bash
+PARSE_MACHINE_URL=https://build-os.ionoid.net/tools/install-ionoid/ionoid-parse-machine.bash
 MANAGER_PACKAGE=sealos-manager
 MANAGER_FILE=""
 MANGER_URL=""
@@ -185,6 +186,22 @@ check_for_necessary_tools() {
         fi
 }
 
+download_parse_machine_helper() {
+        parse_machine_script=$1
+
+        if [ ! -f "$parse_machine_script" ]; then
+                curl -o "$parse_machine_script" -s -C - -# -f "$PARSE_MACHINE_URL"
+                if [[ $? -ne 0 ]]; then
+                        schedule_feedback $STATUS_FILE "error" \
+                                "Build OS: failed download $PARSE_MACHINE_URL" 0 "null"
+                        exit 1
+                fi
+        fi
+
+        source $parse_machine_script
+}
+
+
 # Downloads build-os script and save it if necessary
 download_build_os_script() {
         build_os_file=$1
@@ -239,6 +256,10 @@ download_sealos_manager() {
 install() {
         check_for_necessary_tools
 
+        # Download parse machine if it is not here
+        download_parse_machine_helper "./ionoid-parse-machine.bash"
+
+        # Parse machine
         parse_machine ${MACHINE}
 
         # Check again

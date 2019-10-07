@@ -18,6 +18,7 @@ ssh -p $SSHPORT $USER@$SERVER sudo mkdir -p /mnt/storage/$SERVER/www/tools/${TAR
 scp -pr -P $SSHPORT install-ionoid-sealos-manager-sdk.bash $USER@$SERVER:~/${TARGET}
 scp -pr -P $SSHPORT install-tools.bash $USER@$SERVER:~/${TARGET}
 scp -pr -P $SSHPORT build-os.bash $USER@$SERVER:~/${TARGET}
+scp -pr -P $SSHPORT ionoid-parse-machine.bash $USER@$SERVER:~/${TARGET}
 scp -pr -P $SSHPORT LICENSE $USER@$SERVER:~/${TARGET}
 scp -pr -P $SSHPORT README.md $USER@$SERVER:~/${TARGET}
 
