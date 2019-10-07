@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Use this deploy script to deploy the tools to a remote server
+
+# tools are assumed to be in /var/www/$SERVER/tools/$TARGET/
+
 source ./environment
 
 echo "Checking git status: please commit and push upstream any pending changes"
@@ -25,6 +29,6 @@ scp -pr -P $SSHPORT README.md $USER@$SERVER:~/${TARGET}
 ssh -p $SSHPORT $USER@$SERVER sudo -E cp -f -r $HOME/${TARGET} /var/www/${SERVER}/tools/
 
 # Lets fix permissions in cases
-ssh -p $SSHPORT $USER@$SERVER sudo chown -R www-data.www-data /var/www//${SERVER}/tools/${TARGET}/
+ssh -p $SSHPORT $USER@$SERVER sudo chown -R www-data.www-data /var/www/${SERVER}/tools/${TARGET}/
 
 exit 0
