@@ -5,6 +5,16 @@ function validate_arch() {
 
         # lets reset to empty
         MACHINE=""
+        if [ "$machine" = "armv6" ] || [ "$machine" = "ARMv6" ]; then
+                machine="arm6"
+        elif [ "$machine" = "armv7" ] || [ "$machine" = "ARMv7" ]; then
+                machine="arm7"
+        elif [ "$machine" = "arm8" ] || [ "$machine" = "ARMv8" ] || [ "$machine" = "ARMv8-AArch64" ]; then
+                machine="arm64"
+        elif [ "$machine" = "x86-64" ] || [ "$machine" = "x86_64" ]; then
+                MACHINE="amd64"
+        fi
+
         if [ "$machine" != "arm6" ] && \
            [ "$machine" != "arm7" ] && \
            [ "$machine" != "arm64" ] && \
