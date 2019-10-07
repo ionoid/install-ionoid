@@ -19,6 +19,7 @@ export STATUS_FILE=$STATUS_FILE
 export BACKEND_BUILD=$BACKEND_BUILD
 export BUILDOS_LOCK=$BUILDOS_LOCK
 export OUTPUTDIR=$OUTPUTDIR
+export MACHINE=$MACHINE
 
 COMMAND=${0##*/}
 
@@ -263,7 +264,7 @@ install() {
         parse_machine ${MACHINE}
 
         # Check again
-        if [ -z ${MACHINE} ]; then
+        if [[ -z ${MACHINE} ]]; then
                 echo "Error: machine arch is not set" >&2
                 schedule_feedback $STATUS_FILE "error" \
                         "Build OS failed passed Architecture Machine not supported" 0 "null"
