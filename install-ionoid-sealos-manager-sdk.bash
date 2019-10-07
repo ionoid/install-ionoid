@@ -189,13 +189,13 @@ check_for_necessary_tools() {
 download_parse_machine_helper() {
         parse_machine_script=$1
 
-        if [ ! -f "$parse_machine_script" ]; then
-                curl -o "$parse_machine_script" -s -C - -# -f "$PARSE_MACHINE_URL"
-                if [[ $? -ne 0 ]]; then
-                        schedule_feedback $STATUS_FILE "error" \
-                                "Build OS: failed download $PARSE_MACHINE_URL" 0 "null"
-                        exit 1
-                fi
+        # Always download cause we may update them later
+        curl -o "$parse_machine_script" -s -# -f "$PARSE_MACHINE_URL"
+        if [[ $? -ne 0 ]]; then
+                echo "$COMMAND: Error: failed to download $PARSE_MACHINE_URL" >&2
+                schedule_feedback $STATUS_FILE "error" \
+                        "Build OS: failed download $PARSE_MACHINE_URL" 0 "null"
+                exit 1
         fi
 
         source $parse_machine_script
@@ -213,7 +213,7 @@ download_build_os_script() {
 
         if trace which curl >/dev/null; then
                 echo "Downloading Build OS script: $BUILD_URL"
-                curl -o "$build_os_file" -s -C - -# -f "$BUILD_URL" || exit 1
+                curl -o "$build_os_file" -s -# -f "$BUILD_URL" || exit 1
                 chmod 775 "$build_os_file"
         else
                 echo "Error: failed 'curl' must be installed to download files." >&2
@@ -250,7 +250,7 @@ download_sealos_manager() {
         fi
 
         echo "Downloading SealOS Manager from: $MANAGER_URL"
-        trace curl -o "$DST" -C - -# -f "$MANAGER_URL"
+        trace curl -o "$DST" -# -f "$MANAGER_URL"
 }
 
 install() {
