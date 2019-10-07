@@ -1,3 +1,5 @@
+# Parse MACHINE bash helper
+
 function validate_arch() {
         machine=$1
 
