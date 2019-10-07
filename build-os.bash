@@ -389,6 +389,7 @@ main() {
                 exit 1
         fi
 
+        echo ""
         echo "Build OS '${OS}' into '${IMAGE_DIR}/output/${IMAGE_NAME}-ionoid.zip' finished"
 
         schedule_feedback $STATUS_FILE "in_progress" \
