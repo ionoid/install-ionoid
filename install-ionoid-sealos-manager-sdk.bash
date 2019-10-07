@@ -16,7 +16,7 @@ MANGER_URL=""
 
 # STATUS FILE is used by our backend of automatic build-os
 export STATUS_FILE=$STATUS_FILE
-export BACKEND_BUILD=$BACKEND_BUILD
+export LOCAL_BUILD=$LOCAL_BUILD
 export BUILDOS_LOCK=$BUILDOS_LOCK
 export OUTPUTDIR=$OUTPUTDIR
 export MACHINE=$MACHINE
@@ -190,6 +190,11 @@ check_for_necessary_tools() {
 download_parse_machine_helper() {
         parse_machine_script=$1
 
+        if [ "$LOCAL_BUILD" = "true" ] && [ -f $parse_machine_script ]; then
+                source $parse_machine_script
+                return
+        fi
+
         # Always download cause we may update them later
         curl -o "$parse_machine_script" -s -# -f "$PARSE_MACHINE_URL"
         if [[ $? -ne 0 ]]; then
@@ -207,7 +212,7 @@ download_parse_machine_helper() {
 download_build_os_script() {
         build_os_file=$1
 
-        if [ -f $build_os_file ]; then
+        if [ "$LOCAL_BUILD" = "true" ] && [ -f $build_os_file ]; then
                 chmod 775 "$build_os_file"
                 return
         fi
@@ -338,7 +343,7 @@ install() {
                 # Lets get image name and directory
                 export IMAGE_DIR=$(dirname $IMAGE)
 
-                if [ "$BACKEND_BUILD" = "true" ]; then
+                if [ "$LOCAL_BUILD" = "true" ]; then
                         # Download build os and store it into scratch $WORKDIR
                         download_build_os_script "./build-os.bash"
 
