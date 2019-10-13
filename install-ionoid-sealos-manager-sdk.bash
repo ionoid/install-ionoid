@@ -281,8 +281,15 @@ install() {
 
 
         export CONFIG=$(realpath $CONFIG)
-        export MACHINE=$MACHINE
         export IMAGE=$(realpath $IMAGE)
+
+        # Special for Raspbian OS arm64 to just run ARMv7
+        if [[ $IMAGE == *"raspbian"* ]] && [[ $MACHINE == *"arm64"* ]]; then
+                echo "$COMMAND: OS Raspbian and Machine '$MACHINE' using Machine 'arm7' instead of '$MACHINE'"
+                export MACHINE="arm7"
+        else
+                export MACHINE=$MACHINE
+        fi
 
         echo "$COMMAND: Working on Project MACHINE '${MACHINE}'" >&2
         MANAGER_FILE="sealos-manager-latest-${MACHINE}"
