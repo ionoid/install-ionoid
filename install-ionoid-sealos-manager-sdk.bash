@@ -162,15 +162,15 @@ schedule_feedback() {
 
 # Check if kpartx is installed first
 check_for_necessary_tools() {
-        which kpartx
+        which kpartx > /dev/null 2>&1
         if [[ $? -ne 0 ]]; then
-                echo "$COMMAND: Error: can not find 'kpartx', make sure to install it before" >&2
+                echo "$COMMAND: Error: can not find 'kpartx (Create device maps from partition tables)', make sure to install it before" >&2
                 echo "$COMMAND: for Debian based distos: sudo apt-get install kpartx" >&2
                 echo "$COMMAND: for Fedora based distos: sudo dnf install kpartx" >&2
                 exit 2
         fi
 
-        which losetup
+        which losetup > /dev/null 2>&1
         if [[ $? -ne 0 ]]; then
                 echo "$COMMAND: Error: can not find 'losetup', make sure to install it before" >&2
                 echo "$COMMAND: for Debian based distos: sudo apt-get install util-linux" >&2
@@ -178,7 +178,7 @@ check_for_necessary_tools() {
                 exit 2
         fi
 
-        which jq
+        which jq > /dev/null 2>&1
         if [[ $? -ne 0 ]]; then
                 echo "$COMMAND: Error: can not find 'jq (Command-line JSON processor)', make sure to install it before" >&2
                 echo "$COMMAND: for Debian based distos: sudo apt-get install jq" >&2
@@ -233,6 +233,11 @@ download_sealos_manager() {
 
         MANAGER_URL=$(trace curl -s -# -f "$SRC")
 
+        if [[ $? -ne 0 ]]; then
+                echo "Error: failed 'curl' to check sealos-manager URL '$SRC'." >&2
+                exit 1
+        fi
+
         # already downloaded file ?
         if [ -f $DST ]; then
                 size=$(stat -c%s "$DST")
@@ -270,7 +275,7 @@ install() {
 
         # Check again
         if [[ -z ${MACHINE} ]]; then
-                echo "Error: machine arch is not set" >&2
+                echo "Error: variable MACHINE arch is not set or not able to determine" >&2
                 schedule_feedback $STATUS_FILE "error" \
                         "Build OS failed passed Architecture Machine not supported" 0 "null"
                 exit 1
@@ -283,12 +288,12 @@ install() {
         export CONFIG=$(realpath $CONFIG)
         export IMAGE=$(realpath $IMAGE)
 
-        # Special for Raspbian OS arm64 to just run ARMv7
-        if [[ $IMAGE == *"raspbian"* ]] && [[ $MACHINE == *"arm64"* ]]; then
-                echo "$COMMAND: OS Raspbian and Machine '$MACHINE' using Machine 'arm7' instead of '$MACHINE'"
-                export MACHINE="arm7"
-        else
-                export MACHINE=$MACHINE
+        # Special for Raspbian OS for now use arm6 as arch
+        if [[ $IMAGE == *"raspbian"* ]]; then
+                echo "$COMMAND: OS Raspbian using Machine 'arm6' instead of '$MACHINE'"
+                export MACHINE="arm6"
+        # else
+        #        export MACHINE=$MACHINE
         fi
 
         echo "$COMMAND: Working on Project MACHINE '${MACHINE}'" >&2
