@@ -281,6 +281,12 @@ install() {
                 exit 1
         fi
 
+        # Fail early
+        if [ -n $IMAGE ] && [ ! -f $IMAGE ]; then
+                echo "$COMMAND: Error: can not locate image ${IMAGE}"
+                exit 1
+        fi
+
         export OS=$OS
         export DESTDIR=$DESTDIR
 
@@ -346,10 +352,6 @@ install() {
         # Work on images and install from build-os.bash
         #
         if [ -n $IMAGE ]; then
-                if [ ! -f $IMAGE ]; then
-                        echo "Error: can not locate image ${IMAGE}"
-                        exit 1
-                fi
                 echo "Using $IMAGE as a target image"
 
                 # Lets get image name and directory
