@@ -45,14 +45,14 @@ Install command:
 
 ```bash
 cd ionoid-build
-curl https://manager.services.ionoid.net/install-tools.bash | MACHINE=arm7 IMAGE=raspbian-stretch-lite.zip CONFIG=config.json bash
+curl https://github.install-ionoid.sdk.ionoid.net/install-tools.bash | IMAGE=raspbian-stretch-lite.zip CONFIG=config.json bash
 ```
 
 or
 
 ```bash
 cd ionoid-build
-curl -O https://manager.services.ionoid.net/install-tools.bash
+curl -O https://github.install-ionoid.sdk.ionoid.net/install-tools.bash
 chmod 755 install-tools.bash
-MACHINE=arm7 IMAGE=raspbian-stretch-lite.zip CONFIG=config.json ./install-tools.bash
+IMAGE=raspbian-stretch-lite.zip CONFIG=config.json ./install-tools.bash
 ```
