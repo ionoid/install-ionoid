@@ -5,7 +5,7 @@
 # Copyright (2019) Djalal Harouni
 #
 
-# curl https://manager.services.ionoid.net/install-tools.bash | bash
+# curl https://github.install-ionoid.sdk.ionoid.net/install-tools.bash | bash
 
 bash=$(which bash)
 
