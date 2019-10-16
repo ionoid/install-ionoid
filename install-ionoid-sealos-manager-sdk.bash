@@ -296,13 +296,12 @@ install() {
 
         # Special for Raspbian OS for now use arm6 as arch
         if [[ $IMAGE == *"raspbian"* ]]; then
-                echo "$COMMAND: OS Raspbian using Machine 'arm6' instead of '$MACHINE'"
+                echo "$COMMAND: OS Raspbian using Machine 'arm6' instead of '$MACHINE' for sealos-manager, you can ignore this"
                 export MACHINE="arm6"
         # else
         #        export MACHINE=$MACHINE
         fi
 
-        echo "$COMMAND: Working on Project MACHINE '${MACHINE}'" >&2
         MANAGER_FILE="sealos-manager-latest-${MACHINE}"
 
         mkdir -p ${manager_dst} > /dev/null 2>&1
