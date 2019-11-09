@@ -7,7 +7,7 @@ function validate_arch() {
         MACHINE=""
         if [ "$machine" = "armv6" ] || [ "$machine" = "ARMv6" ]; then
                 machine="arm6"
-        elif [ "$machine" = "armv7" ] || [ "$machine" = "ARMv7" ]; then
+        elif [ "$machine" = "armv7" ] || [ "$machine" = "ARMv7" ] || [ "$machine" = "ARMv8-AArch32" ]; then
                 machine="arm7"
         elif [ "$machine" = "arm8" ] || [ "$machine" = "ARMv8" ] || [ "$machine" = "ARMv8-AArch64" ]; then
                 machine="arm64"
