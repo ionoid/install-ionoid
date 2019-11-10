@@ -89,7 +89,7 @@ cp_config_to_sealos_manager() {
 
         if [ ! -z ${CONFIG_JSON} ] && [ -f $CONFIG_JSON ]; then
                 echo "Install ${OS}: copy ${CONFIG_JSON} into $SEALOS_DIR/prod/"
-                cp -t $SEALOS_DIR/prod/ $CONFIG_JSON
+                cp -f $CONFIG_JSON $SEALOS_DIR/prod/config.json
                 chmod 0600 $SEALOS_DIR/prod/config.json
         fi
 }
@@ -99,7 +99,7 @@ cp_config_to_bootfs() {
                 schedule_feedback $STATUS_FILE "in_progress" \
                         "Configuring the ${IMAGE_NAME} image" 60 "null"
                 echo "Install ${OS}: copy ${CONFIG_JSON} into $BOOTFS"
-                cp -t $BOOTFS $CONFIG_JSON
+                cp -f $CONFIG_JSON $BOOTFS/config.json
                 chmod 0600 $BOOTFS/config.json
         fi
 }
