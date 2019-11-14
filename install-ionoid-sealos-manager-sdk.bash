@@ -211,10 +211,11 @@ download_script_helpers() {
 }
 
 download_post_install_scripts() {
+        currentdir=$1
         scripts=(raspbian-post-install.bash)
 
         for script in "${scripts[@]}"; do
-                target="post-build.d/$script"
+                target="$currentdir/post-build.d/$script"
                 url="https://build-os.ionoid.net/tools/install-ionoid/$target"
                 download_script_helpers $target $url
         done
@@ -278,9 +279,6 @@ download_sealos_manager() {
 
 install() {
         check_for_necessary_tools
-
-        # Download raspbian post install script
-        download_post_install_scripts
 
         # Download parse machine if it is not here
         download_script_helpers "./ionoid-parse-machine.bash" $PARSE_MACHINE_URL
@@ -372,12 +370,18 @@ install() {
                 export IMAGE_DIR=$(dirname $IMAGE)
 
                 if [ "$LOCAL_BUILD" = "true" ]; then
+                        # Download raspbian post install script
+                        download_post_install_scripts "."
+
                         # Download build os and store it into scratch $WORKDIR
                         download_build_os_script "./build-os.bash"
 
                         # Lets track mounts
                         export WORKDIR="/run/shm/${OUTPUTDIR}"
                 else
+                        # Download raspbian post install script
+                        download_post_install_scripts "$scratch"
+
                         download_build_os_script "$scratch/build-os.bash"
                         # If not a backend build then cd into $scratch
                         export WORKDIR=$scratch
