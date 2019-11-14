@@ -25,6 +25,7 @@ scp -pr -P $SSHPORT build-os.bash $USER@$SERVER:~/${TARGET}
 scp -pr -P $SSHPORT ionoid-parse-machine.bash $USER@$SERVER:~/${TARGET}
 scp -pr -P $SSHPORT LICENSE $USER@$SERVER:~/${TARGET}
 scp -pr -P $SSHPORT README.md $USER@$SERVER:~/${TARGET}
+scp -pr -P $SSHPORT post-build.d $USER@$SERVER:~/${TARGET}
 
 ssh -p $SSHPORT $USER@$SERVER sudo -E cp -f -r $HOME/${TARGET} /var/www/${SERVER}/tools/
 

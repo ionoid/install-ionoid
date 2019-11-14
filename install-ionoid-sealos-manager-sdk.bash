@@ -187,26 +187,38 @@ check_for_necessary_tools() {
         fi
 }
 
-download_parse_machine_helper() {
-        parse_machine_script=$1
+download_script_helpers() {
+        script=$1
+        url=$2
 
-        if [ "$LOCAL_BUILD" = "true" ] && [ -f $parse_machine_script ]; then
-                source $parse_machine_script
+        if [ "$LOCAL_BUILD" = "true" ] && [ -f $script ]; then
+                source $script
                 return
         fi
 
+        mkdir -p $(dirname $script)
+
         # Always download cause we may update them later
-        curl -o "$parse_machine_script" -s -# -f "$PARSE_MACHINE_URL"
+        curl -o "$script" -s -# -f "$url"
         if [[ $? -ne 0 ]]; then
-                echo "$COMMAND: Error: failed to download $PARSE_MACHINE_URL" >&2
+                echo "$COMMAND: Error: failed to download $url" >&2
                 schedule_feedback $STATUS_FILE "error" \
-                        "Build OS: failed download $PARSE_MACHINE_URL" 0 "null"
+                        "Build OS: failed download $url" 0 "null"
                 exit 1
         fi
 
-        source $parse_machine_script
+        source $script
 }
 
+download_post_install_scripts() {
+        scripts=(raspbian-post-install.bash)
+
+        for $script in "${scripts[@]}"; do
+                target="post-build.d/$script"
+                url="https://build-os.ionoid.net/tools/install-ionoid/$target"
+                download_script_helpers $target $url
+        done
+}
 
 # Downloads build-os script and save it if necessary
 download_build_os_script() {
@@ -267,8 +279,11 @@ download_sealos_manager() {
 install() {
         check_for_necessary_tools
 
+        # Download raspbian post install script
+        download_post_install_scripts
+
         # Download parse machine if it is not here
-        download_parse_machine_helper "./ionoid-parse-machine.bash"
+        download_script_helpers "./ionoid-parse-machine.bash" $PARSE_MACHINE_URL
 
         # Parse machine
         parse_machine ${MACHINE}

@@ -242,7 +242,7 @@ wait_for_loopdevices() {
         done
 }
 
-setup_raspbian_filesystem() {
+prepare_raspbian_filesystem() {
         echo "Install ${OS}: scanning ${UNZIPPED_IMAGE} for partitions"
 
         declare -a lines
@@ -319,6 +319,12 @@ cleanup_raspbian_filesystem() {
         CLEANED=1
 }
 
+raspbian_post_install() {
+        source ./post-build.d/raspbian-post-install.bash
+
+        post_install
+}
+
 prepare_raspbian_os() {
         echo "Start building ${OS}"
 
@@ -333,20 +339,20 @@ prepare_raspbian_os() {
 
         mkdir -p ${WORKDIR}
 
-        # Deprecated for security
-        # cp_config_to_sealos_manager
-
         unzip_os_image
 
-        setup_raspbian_filesystem
+        prepare_raspbian_filesystem
 
         mount_rootfs
-        install_sealos_manager
-        umount_rootfs
-
         mount_bootfs
         cp_config_to_bootfs
+
+        install_sealos_manager
+
+        raspbian_post_install
+
         umount_bootfs
+        umount_rootfs
 
         cleanup_raspbian_filesystem
 
