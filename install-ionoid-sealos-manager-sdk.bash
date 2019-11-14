@@ -213,7 +213,7 @@ download_script_helpers() {
 download_post_install_scripts() {
         scripts=(raspbian-post-install.bash)
 
-        for $script in "${scripts[@]}"; do
+        for script in "${scripts[@]}"; do
                 target="post-build.d/$script"
                 url="https://build-os.ionoid.net/tools/install-ionoid/$target"
                 download_script_helpers $target $url
