@@ -319,6 +319,10 @@ cleanup_raspbian_filesystem() {
         CLEANED=1
 }
 
+raspbian_setup_rootfs_files() {
+        mkdir -p $ROOTFS/data
+}
+
 raspbian_post_install() {
         source ./post-build.d/raspbian-post-install.bash
 
@@ -345,6 +349,9 @@ prepare_raspbian_os() {
 
         mount_rootfs
         mount_bootfs
+
+        raspbian_setup_rootfs_files
+
         cp_config_to_bootfs
 
         install_sealos_manager
