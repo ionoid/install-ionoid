@@ -216,7 +216,7 @@ download_post_install_scripts() {
 
         for script in "${scripts[@]}"; do
                 target="$currentdir/post-build.d/$script"
-                url="https://build-os.ionoid.net/tools/install-ionoid/$target"
+                url="https://build-os.ionoid.net/tools/install-ionoid/post-build.d/$script"
                 download_script_helpers $target $url
         done
 }
