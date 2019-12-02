@@ -277,7 +277,12 @@ prepare_raspbian_filesystem() {
                 MAPPER_PARTITIONS+=("/dev/mapper/$devline")
 
                 loopline=${lines[7]}
-                LOOP_DEVICE=$loopline
+                loopfields=(${loopline//:/ })
+                if [ "${#loopfields[@]}" -eq 1 ]; then
+                        LOOP_DEVICE=${loopfields[0]}
+                else
+                        LOOP_DEVICE="/dev/loop${loopfields[$(expr ${#loopfields[@]} - 1)]}"
+                fi
         else
                 echo "Install ${OS}: Error unsupported partitions of ${UNZIPPED_IMAGE}" >&2
                 exit 2
