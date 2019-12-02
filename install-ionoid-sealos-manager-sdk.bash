@@ -129,7 +129,7 @@ while true; do
         shift
 done
 
-declare manager_dst="/run/install-ionoid/"
+declare manager_dst="/data/install-ionoid/"
 
 trace() {
         echo "$@" >&2
