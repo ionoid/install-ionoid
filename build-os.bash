@@ -261,11 +261,14 @@ prepare_raspbian_filesystem() {
 
         while IFS= read -r line; do
                 lines+=($line)
+                echo "Install ${OS}: partition scan: $line"
         done < <(kpartx -va $IMAGE_DIR/$UNZIPPED_IMAGE)
         if [[ $? -ne 0 ]]; then
                 echo "Install ${OS}: Error kpartx failed to add partitions of ${UNZIPPED_IMAGE}" >&2
                 exit 2
         fi
+
+        
 
         if [ "${#lines[@]}" -ge 18 ]; then
                 # Get BOOTFS
