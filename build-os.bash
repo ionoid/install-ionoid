@@ -94,13 +94,21 @@ cp_config_to_sealos_manager() {
         fi
 }
 
-cp_config_to_bootfs() {
+cp_config_json_files() {
         if [ ! -z ${CONFIG_JSON} ] && [ -f $CONFIG_JSON ]; then
                 schedule_feedback $STATUS_FILE "in_progress" \
                         "Configuring the ${IMAGE_NAME} image" 60 "null"
                 echo "Install ${OS}: copy ${CONFIG_JSON} into $BOOTFS"
                 cp -f $CONFIG_JSON $BOOTFS/config.json
                 chmod 0600 $BOOTFS/config.json
+
+                echo "Install ${OS}: copy ${CONFIG_JSON} into $DATA_BOOT_FS"
+                cp -f $CONFIG_JSON $DATA_BOOT_FS/config.json
+                chmod 0600 $DATA_BOOT_FS/config.json
+
+                echo "Install ${OS}: copy ${CONFIG_JSON}.backup into $DATA_BOOT_FS"
+                cp -f $CONFIG_JSON $DATA_BOOT_FS/config.json.backup
+                chmod 0600 $DATA_BOOT_FS/config.json.backup
         fi
 }
 
@@ -328,7 +336,7 @@ cleanup_raspbian_filesystem() {
 }
 
 raspbian_setup_rootfs_files() {
-        mkdir -p $ROOTFS/data
+        mkdir -p $DATA_BOOT_FS
 }
 
 raspbian_post_install() {
@@ -343,6 +351,8 @@ prepare_raspbian_os() {
         # Lets set rootfs and bootfs filesystems paths
         ROOTFS="${WORKDIR}/$OS/rootfs"
         BOOTFS="${WORKDIR}/$OS/rootfs/boot"
+        DATAFS="${WORKDIR}/$OS/rootfs/data"
+        DATA_BOOT_FS="${DATAFS}/ionoid/boot/"
 
         UNZIPPED_IMAGE=${IMAGE_NAME}.img
 
@@ -360,7 +370,7 @@ prepare_raspbian_os() {
 
         raspbian_setup_rootfs_files
 
-        cp_config_to_bootfs
+        cp_config_json_files
 
         install_sealos_manager
 
