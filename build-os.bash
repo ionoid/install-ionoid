@@ -337,6 +337,7 @@ cleanup_raspbian_filesystem() {
 
 raspbian_setup_rootfs_files() {
         mkdir -p $DATA_BOOT_FS
+        mkdir -p $DATAFS/ionoid/sealos-manager/
 }
 
 raspbian_post_install() {
