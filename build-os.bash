@@ -3,7 +3,7 @@
 #
 # Copyright (2019) Nazim Djafar
 # Copyright (2019) Djalal Harouni
-# Copyright (2019) Open Devices
+# Copyright (2019) Open Devices GmbH
 #
 
 #
@@ -102,13 +102,13 @@ cp_config_json_files() {
                 cp -f $CONFIG_JSON $BOOTFS/config.json
                 chmod 0600 $BOOTFS/config.json
 
-                echo "Install ${OS}: copy ${CONFIG_JSON} into $DATA_BOOT_FS"
-                cp -f $CONFIG_JSON $DATA_BOOT_FS/config.json
-                chmod 0600 $DATA_BOOT_FS/config.json
+                echo "Install ${OS}: copy ${CONFIG_JSON} into $DATAFS_BOOT"
+                cp -f $CONFIG_JSON $DATAFS_BOOT/config.json
+                chmod 0600 $DATAFS_BOOT/config.json
 
-                echo "Install ${OS}: copy ${CONFIG_JSON}.backup into $DATA_BOOT_FS"
-                cp -f $CONFIG_JSON $DATA_BOOT_FS/config.json.backup
-                chmod 0600 $DATA_BOOT_FS/config.json.backup
+                echo "Install ${OS}: copy ${CONFIG_JSON}.backup into $DATAFS_BOOT"
+                cp -f $CONFIG_JSON $DATAFS_BOOT/config.json.backup
+                chmod 0600 $DATAFS_BOOT/config.json.backup
         fi
 }
 
@@ -179,7 +179,7 @@ install_sealos_manager()
         cd $old_pwd
 }
 
-zip_os_image() {
+raspbian_zip_os_image() {
         mkdir -p ${IMAGE_DIR}/output/ || exit 1
         echo "Install ${OS}: compressing ${UNZIPPED_IMAGE} into ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp"
         schedule_feedback $STATUS_FILE "in_progress" \
@@ -201,7 +201,7 @@ zip_os_image() {
         fi
 }
 
-unzip_os_image() {
+raspbian_unzip_os_image() {
         # Check if the File already exists and is unzipped
         if [ -f "$IMAGE_DIR/$UNZIPPED_IMAGE" ]; then
                 echo "Install ${OS}: found already raw '${IMAGE_DIR}/${UNZIPPED_IMAGE}' image, ignore unzip operation"
@@ -250,7 +250,7 @@ wait_for_loopdevices() {
         done
 }
 
-prepare_raspbian_filesystem() {
+raspbian_parse_os_image() {
         echo "Install ${OS}: scanning ${UNZIPPED_IMAGE} for partitions"
 
         declare -a lines
@@ -260,7 +260,6 @@ prepare_raspbian_filesystem() {
 
         # Get lock
         get_lock
-
 
         # Execute this under lock as we gonna probe for device loops
         # We make sure to use the same reported loop devices
@@ -275,8 +274,6 @@ prepare_raspbian_filesystem() {
                 echo "Install ${OS}: Error kpartx failed to add partitions of ${UNZIPPED_IMAGE}" >&2
                 exit 2
         fi
-
-        
 
         if [ "${#lines[@]}" -ge 18 ]; then
                 # Get BOOTFS
@@ -336,8 +333,9 @@ cleanup_raspbian_filesystem() {
 }
 
 raspbian_setup_rootfs_files() {
-        mkdir -p $DATA_BOOT_FS
-        mkdir -p $DATAFS/ionoid/sealos-manager/
+        mkdir -p ${WORKDIR}
+        mkdir -p $DATAFS_BOOT
+        mkdir -p $DATAFS_SEALOS_MANAGER
 }
 
 raspbian_post_install() {
@@ -353,23 +351,26 @@ prepare_raspbian_os() {
         ROOTFS="${WORKDIR}/$OS/rootfs"
         BOOTFS="${WORKDIR}/$OS/rootfs/boot"
         DATAFS="${WORKDIR}/$OS/rootfs/data"
-        DATA_BOOT_FS="${DATAFS}/ionoid/boot/"
+        DATAFS_BOOT="${DATAFS}/ionoid/boot/"
+        DATAFS_SEALOS_MANAGER="${DATAFS}/ionoid/sealos-manager/"
 
         UNZIPPED_IMAGE=${IMAGE_NAME}.img
 
         # Make sure to clean $WORKDIR
         trap cleanup_raspbian_filesystem EXIT || exit 1
 
-        mkdir -p ${WORKDIR}
 
-        unzip_os_image
+        # Prepare target filesystem where to do mounts
+        raspbian_setup_rootfs_files
 
-        prepare_raspbian_filesystem
+        # Unzip OS Image
+        raspbian_unzip_os_image
+
+        # Parse raspbian os image partitions
+        raspbian_parse_os_image
 
         mount_rootfs
         mount_bootfs
-
-        raspbian_setup_rootfs_files
 
         cp_config_json_files
 
@@ -382,7 +383,8 @@ prepare_raspbian_os() {
 
         cleanup_raspbian_filesystem
 
-        zip_os_image
+        # Zip back OS Image
+        raspbian_zip_os_image
 
         return
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright (2019) Open Devices
+# Copyright (2019) Open Devices GmbH
 # Copyright (2019) Djalal Harouni
 #
 
