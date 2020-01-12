@@ -46,11 +46,6 @@ declare LOCKFILE=$BUILDOS_LOCK
 declare CLEANED_LOCK=0
 declare DELETE_PATCHED_IMAGE="true"
 
-SEALOS_MANAGER_ZIPPED=$(grep -r --include 'sealos-manager*.zip' -le "$regexp" ./)
-
-SEALOS_MANAGER_UNZIPPED="${SEALOS_MANAGER_ZIPPED%.*}/"
-OSFILE=$(grep -r --include '${OS}*.zip' -le "$regexp" ./)
-
 schedule_feedback() {
 
         if [ -z ${STATUS_FILE} ]; then
@@ -82,18 +77,6 @@ check_file() {
         fi
 }
 
-cp_config_to_sealos_manager() {
-        if [ -z ${SEALOS_DIR} ]; then
-                return
-        fi
-
-        if [ ! -z ${CONFIG_JSON} ] && [ -f $CONFIG_JSON ]; then
-                echo "Install ${OS}: copy ${CONFIG_JSON} into $SEALOS_DIR/prod/"
-                cp -f $CONFIG_JSON $SEALOS_DIR/prod/config.json
-                chmod 0600 $SEALOS_DIR/prod/config.json
-        fi
-}
-
 cp_config_json_files() {
         if [ ! -z ${CONFIG_JSON} ] && [ -f $CONFIG_JSON ]; then
                 schedule_feedback $STATUS_FILE "in_progress" \
@@ -112,15 +95,16 @@ cp_config_json_files() {
         fi
 }
 
-# Returns offset of classic Raspbian images
-get_raspbian_classic_img_rootfs_offset() {
-        __start=$(fdisk -l $IMAGE_DIR/$UNZIPPED_IMAGE | grep FAT32 | awk ' {print $2}')
-        OFFSET_BOOTFS=$(($__start * 512))
-        __start=$(fdisk -l $IMAGE_DIR/$UNZIPPED_IMAGE | grep Linux | awk ' {print $2}')
-        OFFSET_ROOTFS=$(($__start * 512))
+mount_datafs() {
+        # First make sure to create the /data directory
+        if [ ! -d $DATAFS ];then
+                mkdir -p $DATAFS
+        fi
 
-        echo "Install ${OS}: image boot found at offset $OFFSET_BOOTFS"
-        echo "Install ${OS}: image rootfs found at offset $OFFSET_ROOTFS"
+        if [ "${#MAPPER_PARTITIONS[@]}" -ge 4 ]; then
+                mount ${MAPPER_PARTITIONS[3]} $DATAFS || exit 2
+                echo "Install ${OS}: mounted ${MAPPER_PARTITIONS[3]} at ${DATAFS} of image ${UNZIPPED_IMAGE}"
+        fi
 }
 
 mount_rootfs()
@@ -141,6 +125,16 @@ mount_bootfs()
 
         mount ${MAPPER_PARTITIONS[0]} $BOOTFS || exit 2
         echo "Install ${OS}: mounted ${MAPPER_PARTITIONS[0]} at ${BOOTFS} of image ${UNZIPPED_IMAGE}"
+}
+
+umount_datafs()
+{
+        if [ "${#MAPPER_PARTITIONS[@]}" -ge 4 ]; then
+                sync;sync;
+
+                umount $DATAFS
+                echo "Install ${OS}: umounted rootfs ${DATAFS}"
+        fi
 }
 
 umount_rootfs()
@@ -179,7 +173,7 @@ install_sealos_manager()
         cd $old_pwd
 }
 
-raspbian_zip_os_image() {
+zip_os_image() {
         mkdir -p ${IMAGE_DIR}/output/ || exit 1
         echo "Install ${OS}: compressing ${UNZIPPED_IMAGE} into ${IMAGE_DIR}/output/${IMAGE_NAME}.zip.tmp"
         schedule_feedback $STATUS_FILE "in_progress" \
@@ -201,7 +195,7 @@ raspbian_zip_os_image() {
         fi
 }
 
-raspbian_unzip_os_image() {
+unzip_os_image() {
         # Check if the File already exists and is unzipped
         if [ -f "$IMAGE_DIR/$UNZIPPED_IMAGE" ]; then
                 echo "Install ${OS}: found already raw '${IMAGE_DIR}/${UNZIPPED_IMAGE}' image, ignore unzip operation"
@@ -250,7 +244,7 @@ wait_for_loopdevices() {
         done
 }
 
-raspbian_parse_os_image() {
+parse_os_image_partitions() {
         echo "Install ${OS}: scanning ${UNZIPPED_IMAGE} for partitions"
 
         declare -a lines
@@ -307,17 +301,23 @@ raspbian_parse_os_image() {
         wait_for_loopdevices
 
         echo "Install ${OS}: Loop device attached at ${LOOP_DEVICE}"
-        echo "Install ${OS}: Boot partitions prepared at ${MAPPER_PARTITIONS[0]}"
-        echo "Install ${OS}: Root partitions prepared at ${MAPPER_PARTITIONS[1]}"
+        echo "Install ${OS}: Boot partition prepared at ${MAPPER_PARTITIONS[0]}"
+        echo "Install ${OS}: Root partition prepared at ${MAPPER_PARTITIONS[1]}"
+
+        if [ "${#MAPPER_PARTITIONS[@]}" -ge 4 ]; then
+                echo "Install ${OS}: Root 2 Partition B prepared at ${MAPPER_PARTITIONS[2]}"
+                echo "Install ${OS}: Data partition prepared at ${MAPPER_PARTITIONS[3]}"
+        fi
 }
 
-cleanup_raspbian_filesystem() {
+cleanup_mounted_filesystem() {
         if [ "${CLEANED}" == 1 ]; then
                 return
         fi
 
         clean_lock
 
+        umount ${DATAFS} > /dev/null 2>&1
         umount ${BOOTFS} > /dev/null 2>&1
         umount ${ROOTFS} > /dev/null 2>&1
 
@@ -332,45 +332,86 @@ cleanup_raspbian_filesystem() {
         CLEANED=1
 }
 
-raspbian_setup_rootfs_files() {
-        mkdir -p ${WORKDIR}
-        mkdir -p $DATAFS_BOOT
-        mkdir -p $DATAFS_SEALOS_MANAGER
-}
-
 raspbian_post_install() {
         source ./post-build.d/raspbian-post-install.bash
 
         post_install
 }
 
-prepare_raspbian_os() {
-        echo "Start building ${OS}"
+mount_filesystems() {
+        mount_rootfs
+        mount_bootfs
+        mount_datafs
+}
 
+unmount_filesytems() {
+        unmont_datafs
+        umount_bootfs
+        umount_rootfs
+}
+
+prepare_os_filesystems() {
         # Lets set rootfs and bootfs filesystems paths
         ROOTFS="${WORKDIR}/$OS/rootfs"
         BOOTFS="${WORKDIR}/$OS/rootfs/boot"
         DATAFS="${WORKDIR}/$OS/rootfs/data"
+
+        # DATAFS Related directories
         DATAFS_BOOT="${DATAFS}/ionoid/boot/"
+        DATAFS_DOWNLOAD="${DATAFS}/ionoid/download/"
         DATAFS_SEALOS_MANAGER="${DATAFS}/ionoid/sealos-manager/"
 
-        UNZIPPED_IMAGE=${IMAGE_NAME}.img
-
         # Make sure to clean $WORKDIR
-        trap cleanup_raspbian_filesystem EXIT || exit 1
+        trap cleanup_mounted_filesystem EXIT || exit 1
 
+        mkdir -p ${ROOTFS}
+        mkdir -p ${BOOTFS}
+        mkdir -p ${DATAFS}
+        mkdir -p ${DATAFS_BOOT}
+        mkdir -p ${DATAFS_SEALOS_MANAGER}
+        mkdir -p ${DATAFS_DOWNLOAD}
+}
+
+prepare_seal_os() {
+        echo "Start building ${OS}"
 
         # Prepare target filesystem where to do mounts
-        raspbian_setup_rootfs_files
+        prepare_os_filesystems
 
         # Unzip OS Image
-        raspbian_unzip_os_image
+        unzip_os_image
 
-        # Parse raspbian os image partitions
-        raspbian_parse_os_image
+        # Parse os image partitions
+        parse_os_image_partitions
 
-        mount_rootfs
-        mount_bootfs
+        mount_filesystems
+
+        cp_config_json_files
+
+        install_sealos_manager
+
+        unmount_filesystems
+        cleanup_mounted_filesystem
+
+        # Zip back OS Image
+        zip_os_image
+
+        return
+}
+
+prepare_raspbian_os() {
+        echo "Install: start building ${OS}"
+
+        # Prepare target filesystem where to do mounts
+        prepare_os_filesystems
+
+        # Unzip OS Image
+        unzip_os_image
+
+        # Parse os image partitions
+        parse_os_image_partitions
+
+        mount_filesystems
 
         cp_config_json_files
 
@@ -378,13 +419,11 @@ prepare_raspbian_os() {
 
         raspbian_post_install
 
-        umount_bootfs
-        umount_rootfs
-
-        cleanup_raspbian_filesystem
+        unmount_filesystems
+        cleanup_mounted_filesystem
 
         # Zip back OS Image
-        raspbian_zip_os_image
+        zip_os_image
 
         return
 }
@@ -409,22 +448,28 @@ main() {
                 WORKDIR=$(mktemp -d -t tmp.XXXXXXXXXX) || exit 1
         fi
 
-        # Match and fix OS env
+        # Match and fix OS env in case not set
         if [ -z $OS ]; then
                 if [[ $IMAGE == *"raspbian"* ]]; then
                         OS="raspbian"
+                elif [[ $IMAGE == *"sealos"* ]]; then
+                        OS="sealos"
                 fi
         fi
 
         if [ "$OS" = "raspbian" ]; then
+                UNZIPPED_IMAGE=${IMAGE_NAME}.img
                 prepare_raspbian_os
+        elif [ "$OS" = "sealos" ]; then
+                UNZIPPED_IMAGE=${IMAGE_NAME}.sdimg
+                prepare_seal_os
         else
                 echo "Error: $OS not supported"
                 exit 1
         fi
 
         echo ""
-        echo "Build OS '${OS}' into '${IMAGE_DIR}/output/${IMAGE_NAME}-ionoid.zip' finished"
+        echo "Install: build OS '${OS}' into '${IMAGE_DIR}/output/${IMAGE_NAME}-ionoid.zip' finished"
 
         schedule_feedback $STATUS_FILE "in_progress" \
                 "Cleaning of installation tools on ${IMAGE_NAME} image" 85 "null"
