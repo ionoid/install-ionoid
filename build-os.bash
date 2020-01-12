@@ -327,7 +327,6 @@ cleanup_mounted_filesystem() {
         kpartx -v -d ${LOOP_DEVICE} > /dev/null 2>&1
         losetup -d ${LOOP_DEVICE} > /dev/null 2>&1
 
-
         rm -fr $WORKDIR > /dev/null 2>&1
 
         CLEANED=1
@@ -382,7 +381,7 @@ prepare_seal_os() {
         echo "Start building ${OS}"
 
         # Prepare target filesystem where to do mounts
-        prepare_os_filesystems
+        prepare_os_filesystems_stage1
 
         # Unzip OS Image
         unzip_os_image
@@ -409,7 +408,7 @@ prepare_raspbian_os() {
         echo "Install: start building ${OS}"
 
         # Prepare target filesystem where to do mounts
-        prepare_os_filesystems
+        prepare_os_filesystems_stage1
 
         # Unzip OS Image
         unzip_os_image
