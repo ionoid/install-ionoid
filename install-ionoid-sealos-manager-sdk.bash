@@ -419,6 +419,10 @@ install() {
 
 scratch=$(mktemp -d -t tmp.XXXXXXXXXX) || exit 1
 
-trap "command rm -rf $scratch" EXIT || exit 1
+# Some distros need to export this to access kpartx
+OLD_PATH=$PATH
+export PATH=$PATH:/usr/sbin
+
+trap "command rm -rf $scratch; export PATH=$OLD_PATH" EXIT || exit 1
 
 install
