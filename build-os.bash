@@ -327,6 +327,7 @@ cleanup_mounted_filesystem() {
         kpartx -v -d ${LOOP_DEVICE} > /dev/null 2>&1
         losetup -d ${LOOP_DEVICE} > /dev/null 2>&1
 
+
         rm -fr $WORKDIR > /dev/null 2>&1
 
         CLEANED=1
@@ -340,17 +341,19 @@ raspbian_post_install() {
 
 mount_filesystems() {
         mount_rootfs
+        prepare_os_filesystems_stage2
+
         mount_bootfs
         mount_datafs
 }
 
-unmount_filesytems() {
-        unmont_datafs
+umount_filesystems() {
+        umount_datafs
         umount_bootfs
         umount_rootfs
 }
 
-prepare_os_filesystems() {
+prepare_os_filesystems_stage1() {
         # Lets set rootfs and bootfs filesystems paths
         ROOTFS="${WORKDIR}/$OS/rootfs"
         BOOTFS="${WORKDIR}/$OS/rootfs/boot"
@@ -365,6 +368,9 @@ prepare_os_filesystems() {
         trap cleanup_mounted_filesystem EXIT || exit 1
 
         mkdir -p ${ROOTFS}
+}
+
+prepare_os_filesystems_stage2() {
         mkdir -p ${BOOTFS}
         mkdir -p ${DATAFS}
         mkdir -p ${DATAFS_BOOT}
@@ -390,7 +396,7 @@ prepare_seal_os() {
 
         install_sealos_manager
 
-        unmount_filesystems
+        umount_filesystems
         cleanup_mounted_filesystem
 
         # Zip back OS Image
@@ -419,7 +425,7 @@ prepare_raspbian_os() {
 
         raspbian_post_install
 
-        unmount_filesystems
+        umount_filesystems
         cleanup_mounted_filesystem
 
         # Zip back OS Image
