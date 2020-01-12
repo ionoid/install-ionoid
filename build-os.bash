@@ -462,11 +462,10 @@ main() {
                 fi
         fi
 
+        UNZIPPED_IMAGE=${IMAGE_NAME}.img
         if [ "$OS" = "raspbian" ]; then
-                UNZIPPED_IMAGE=${IMAGE_NAME}.img
                 prepare_raspbian_os
         elif [ "$OS" = "sealos" ]; then
-                UNZIPPED_IMAGE=${IMAGE_NAME}.sdimg
                 prepare_seal_os
         else
                 echo "Error: $OS not supported"
