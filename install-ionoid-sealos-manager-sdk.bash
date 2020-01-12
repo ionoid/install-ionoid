@@ -185,6 +185,14 @@ check_for_necessary_tools() {
                 echo "$COMMAND: for Fedora based distos: sudo dnf install fedora install jq" >&2
                 exit 2
         fi
+
+        which zip > /dev/null 2>&1
+        if [[ $? -ne 0 ]]; then
+                echo "$COMMAND: Error: can not find 'zip (package and compress (archive) file)', make sure to install it before" >&2
+                echo "$COMMAND: for Debian based distos: sudo apt-get install zip unzip" >&2
+                echo "$COMMAND: for Fedora based distos: sudo dnf install fedora install zip unzip" >&2
+                exit 2
+        fi
 }
 
 download_script_helpers() {
