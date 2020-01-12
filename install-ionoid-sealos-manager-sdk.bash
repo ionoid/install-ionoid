@@ -129,7 +129,7 @@ while true; do
         shift
 done
 
-declare manager_dst="/data/install-ionoid/"
+declare manager_dst="/data/apps/download/"
 
 trace() {
         echo "$@" >&2
@@ -231,7 +231,7 @@ download_build_os_script() {
         fi
 
         if trace which curl >/dev/null; then
-                echo "Downloading Build OS script: $BUILD_URL"
+                echo "Installl: downloading Build OS script: $BUILD_URL"
                 curl -o "$build_os_file" -s -# -f "$BUILD_URL" || exit 1
                 chmod 775 "$build_os_file"
         else
@@ -244,7 +244,7 @@ download_sealos_manager() {
         SRC=$1
         DST=$2
 
-        MANAGER_URL=$(trace curl -s -# -f "$SRC")
+        MANAGER_RESOLVED_URL=$(trace curl -s -# -f "$SRC")
 
         if [[ $? -ne 0 ]]; then
                 echo "Error: failed 'curl' to check sealos-manager URL '$SRC'." >&2
@@ -257,11 +257,11 @@ download_sealos_manager() {
 
                 ret=$(curl --retry 2 -sI -S \
                                 --output /dev/null \
-                                --write-out "%{http_code}" -- $MANAGER_URL)
+                                --write-out "%{http_code}" -- $MANAGER_RESOLVED_URL)
 
                 if [ "$ret" -eq "200" ]; then
                         length=$(curl --retry 2 -sI -S \
-                                        -- $MANAGER_URL 2>/dev/null | \
+                                        -- $MANAGER_RESOLVED_URL 2>/dev/null | \
                                         grep -E -i "^(Content-Length:.*)|^(content-length:.*)" | \
                                         awk '{print $2}' | tr -d '\r')
                         if [ "${size}" -eq "${length}" ]; then
@@ -273,8 +273,8 @@ download_sealos_manager() {
                 fi
         fi
 
-        echo "Downloading SealOS Manager from: $MANAGER_URL"
-        trace curl -o "$DST" -# -f "$MANAGER_URL"
+        echo "Install: downloading SealOS Manager from: $MANAGER_RESOLVED_URL"
+        trace curl -o "$DST" -# -f "$MANAGER_RESOLVED_URL"
 }
 
 install() {
@@ -303,20 +303,18 @@ install() {
         export OS=$OS
         export DESTDIR=$DESTDIR
 
-
         export CONFIG=$(realpath $CONFIG)
         export IMAGE=$(realpath $IMAGE)
 
-        # Special for Raspbian OS for now use arm6 as arch
-        if [[ $IMAGE == *"raspbian"* ]]; then
-                echo "$COMMAND: OS Raspbian using Machine 'arm6' instead of '$MACHINE' for sealos-manager, you can ignore this"
-                export MACHINE="arm6"
-        # else
-        #        export MACHINE=$MACHINE
-        fi
+        # Special case for now and for backward
+        # compatibility lets for use armv6
+        export MACHINE="arm6"
+        echo "Install: using Machine 'arm6' instead of '$MACHINE' for sealos-manager, you can ignore this"
 
+        # Set sealos manager file to be downloaded
         MANAGER_FILE="sealos-manager-latest-${MACHINE}"
 
+        # create the target where to download manager file in case
         mkdir -p ${manager_dst} > /dev/null 2>&1
 
         # if not able to create manager_dst lets just store it into tmp
@@ -326,13 +324,13 @@ install() {
 
         download_src=$URL/${MANAGER_FILE}.link
         download_dst=${manager_dst}/${MANAGER_FILE}.zip
-        extract_dst=$manager_dst/${MANAGER_FILE}
+        extract_dst=${manager_dst}/${MANAGER_FILE}
 
         schedule_feedback $STATUS_FILE "in_progress" \
                 "Downloading build OS tools" 33 "null"
 
-        # Download from github.
-        echo "$COMMAND: Selected SealOS Manager version: $MANAGER_FILE" >&2
+        # Print the selected version to be downloaded
+        echo "Install: Selected SealOS Manager version: $MANAGER_FILE" >&2
         schedule_feedback $STATUS_FILE "in_progress" \
                 "Downloading SealOS Manager tools" 35 "null"
 
@@ -340,12 +338,12 @@ install() {
         download_sealos_manager "$download_src" "$download_dst" || return
         echo
 
-        # Get SealOS Manager Version into target_dir
-        target_dir=$(basename -- $MANAGER_URL)
+        # Get SealOS Manager Version into target_dir based on dowloaded version
+        target_dir=$(basename -- $MANAGER_RESOLVED_URL)
         target_dir="${target_dir%.*}"
         export SEALOS_DIR="${extract_dst}/${target_dir}"
 
-        # Before unzip check if sealos-manager was already extracted
+        # Before unzip check if sealos-manager was already extracted before
         if [ ! -f "${SEALOS_DIR}/prod/machine" ]; then
                 trace unzip -q -o "$download_dst" -d "${extract_dst}" || return
                 echo
@@ -353,18 +351,19 @@ install() {
 
         # SealOS Manager now is extracted at location $extract_dst/$target_dir
 
-        export IMAGE_NAME=$(basename $IMAGE)
+        # Now start to handle OS image
+        IMAGE_NAME=$(basename $IMAGE)
         export IMAGE_NAME="${IMAGE_NAME%.*}"
 
         schedule_feedback $STATUS_FILE "in_progress" \
                 "Starting Intallation using ${IMAGE_NAME} OS" 40 "null"
-        echo "Starting Installation ${target_dir}"
+        echo "Install: starting Installation ${target_dir}"
 
         #
         # Work on images and install from build-os.bash
         #
         if [ -n $IMAGE ]; then
-                echo "Using $IMAGE as a target image"
+                echo "Install: using $IMAGE as a target image"
 
                 # Lets get image name and directory
                 export IMAGE_DIR=$(dirname $IMAGE)
@@ -398,7 +397,7 @@ install() {
 
                 # Install config.json to be put into production
                 if [ ! -z ${CONFIG} ]; then
-                        echo "Copying ${CONFIG} to ${extract_dst}/${target_dir}"
+                        echo "Install: copying ${CONFIG} to ${extract_dst}/${target_dir}"
                         trace cp -t ./prod ${CONFIG} || true
                         trace chmod 0600 ./prod/${CONFIG}
                 fi
@@ -409,7 +408,7 @@ install() {
                         trace sudo -E "./install.bash" || return
                 fi
 
-                echo "Installing Ionoid Tools finished"
+                echo "Install: installing Ionoid Tools finished"
         fi
 
         schedule_feedback $STATUS_FILE "in_progress" \
