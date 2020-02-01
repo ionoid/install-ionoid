@@ -462,7 +462,12 @@ main() {
                 fi
         fi
 
-        UNZIPPED_IMAGE=${IMAGE_NAME}.img
+        if [ ${IMAGE_NAME: -4} == ".img" ]; then
+                UNZIPPED_IMAGE=${IMAGE_NAME}
+        else
+                UNZIPPED_IMAGE=${IMAGE_NAME}.img
+        fi
+
         if [ "$OS" = "raspbian" ]; then
                 prepare_raspbian_os
         elif [ "$OS" = "sealos" ]; then
