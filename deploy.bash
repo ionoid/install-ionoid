@@ -32,4 +32,6 @@ ssh -p $SSHPORT $USER@$SERVER sudo -E cp -f -r $HOME/${TARGET} /var/www/${SERVER
 # Lets fix permissions in cases
 ssh -p $SSHPORT $USER@$SERVER sudo chown -R www-data.www-data /var/www/${SERVER}/tools/${TARGET}/
 
+./deploy-to-google-cloud.bash
+
 exit 0
