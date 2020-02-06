@@ -340,6 +340,7 @@ raspbian_post_install() {
 
 mount_filesystems() {
         mount_rootfs
+
         prepare_os_filesystems_stage2
 
         mount_bootfs
@@ -358,11 +359,6 @@ prepare_os_filesystems_stage1() {
         BOOTFS="${WORKDIR}/$OS/rootfs/boot"
         DATAFS="${WORKDIR}/$OS/rootfs/data"
 
-        # DATAFS Related directories
-        DATAFS_BOOT="${DATAFS}/ionoid/boot/"
-        DATAFS_DOWNLOAD="${DATAFS}/ionoid/download/"
-        DATAFS_SEALOS_MANAGER="${DATAFS}/ionoid/sealos-manager/"
-
         # Make sure to clean $WORKDIR
         trap cleanup_mounted_filesystem EXIT || exit 1
 
@@ -370,9 +366,18 @@ prepare_os_filesystems_stage1() {
 }
 
 prepare_os_filesystems_stage2() {
+        # DATAFS Related directories
+        DATAFS_BOOT="${DATAFS}/ionoid/boot/"
+        DATAFS_ETC="${DATAFS}/system/etc/"
+        DATAFS_VAR="${DATAFS}/system/var/"
+        DATAFS_DOWNLOAD="${DATAFS}/ionoid/download/"
+        DATAFS_SEALOS_MANAGER="${DATAFS}/ionoid/sealos-manager/"
+
         mkdir -p ${BOOTFS}
         mkdir -p ${DATAFS}
         mkdir -p ${DATAFS_BOOT}
+        mkdir -p ${DATAFS_ETC}
+        mkdir -p ${DATAFS_VAR}
         mkdir -p ${DATAFS_SEALOS_MANAGER}
         mkdir -p ${DATAFS_DOWNLOAD}
 }
