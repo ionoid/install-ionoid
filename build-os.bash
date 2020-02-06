@@ -338,6 +338,13 @@ raspbian_post_install() {
         post_install
 }
 
+sealos_post_install() {
+
+        # Copy Network Manager files
+        cp -f -r ${ROOTFS}/etc/NetworkManager ${DATAFS_ETC}/
+
+}
+
 mount_filesystems() {
         mount_rootfs
 
@@ -399,6 +406,8 @@ prepare_seal_os() {
         cp_config_json_files
 
         install_sealos_manager
+
+        sealos_post_install
 
         umount_filesystems
         cleanup_mounted_filesystem
