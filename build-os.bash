@@ -194,7 +194,7 @@ zip_os_image() {
                 rm -fr $IMAGE_DIR/$UNZIPPED_IMAGE
         fi
 
-        chown -R $user.$user ${IMAGE_DIR}/output/
+        chown -R ${user}.${user} ${IMAGE_DIR}/output/
 }
 
 unzip_os_image() {
@@ -450,7 +450,7 @@ prepare_raspbian_os() {
 }
 
 main() {
-        user=$USER
+        user=$SUDO_USER
 
         if [ "$UID" -ne "0" ]; then
                 echo "Error: $COMMAND must be run as root"
