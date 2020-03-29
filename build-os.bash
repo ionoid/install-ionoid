@@ -193,6 +193,8 @@ zip_os_image() {
                 echo "Install ${OS}: deleting Unzipped Image $IMAGE_DIR/$UNZIPPED_IMAGE"
                 rm -fr $IMAGE_DIR/$UNZIPPED_IMAGE
         fi
+
+        chown -R $user.$user ${IMAGE_DIR}/output/
 }
 
 unzip_os_image() {
@@ -448,6 +450,8 @@ prepare_raspbian_os() {
 }
 
 main() {
+        user=$USER
+
         if [ "$UID" -ne "0" ]; then
                 echo "Error: $COMMAND must be run as root"
                 exit 2
