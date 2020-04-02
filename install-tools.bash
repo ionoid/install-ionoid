@@ -23,7 +23,7 @@ function download {
         script_file="$dir/install-ionoid-sealos-manager-sdk.bash"
 
         echo "Downloading Ionoid SealOS Manager install script: $URL"
-        curl -# "$URL" > "$script_file" || exit
+        curl -L -# "$URL" > "$script_file" || exit
         chmod 775 "$script_file"
 
         echo "Running install script from: $script_file"

@@ -207,7 +207,7 @@ download_script_helpers() {
         mkdir -p $(dirname $script)
 
         # Always download cause we may update them later
-        curl -o "$script" -s -# -f "$url"
+        curl -o "$script" -L -s -# -f "$url"
         if [[ $? -ne 0 ]]; then
                 echo "$COMMAND: Error: failed to download $url" >&2
                 schedule_feedback $STATUS_FILE "error" \
@@ -240,7 +240,7 @@ download_build_os_script() {
 
         if trace which curl >/dev/null; then
                 echo "Installl: downloading Build OS script: $BUILD_URL"
-                curl -o "$build_os_file" -s -# -f "$BUILD_URL" || exit 1
+                curl -o "$build_os_file" -L -s -# -f "$BUILD_URL" || exit 1
                 chmod 775 "$build_os_file"
         else
                 echo "Error: failed 'curl' must be installed to download files." >&2
@@ -252,7 +252,7 @@ download_sealos_manager() {
         SRC=$1
         DST=$2
 
-        MANAGER_RESOLVED_URL=$(trace curl -s -# -f "$SRC")
+        MANAGER_RESOLVED_URL=$(trace curl -L -s -# -f "$SRC")
 
         if [[ $? -ne 0 ]]; then
                 echo "Error: failed 'curl' to check sealos-manager URL '$SRC'." >&2
@@ -263,12 +263,12 @@ download_sealos_manager() {
         if [ -f $DST ]; then
                 size=$(stat -c%s "$DST")
 
-                ret=$(curl --retry 2 -sI -S \
+                ret=$(curl --retry 2 -L -sI -S \
                                 --output /dev/null \
                                 --write-out "%{http_code}" -- $MANAGER_RESOLVED_URL)
 
                 if [ "$ret" -eq "200" ]; then
-                        length=$(curl --retry 2 -sI -S \
+                        length=$(curl --retry 2 -L -sI -S \
                                         -- $MANAGER_RESOLVED_URL 2>/dev/null | \
                                         grep -E -i "^(Content-Length:.*)|^(content-length:.*)" | \
                                         awk '{print $2}' | tr -d '\r')
@@ -282,7 +282,7 @@ download_sealos_manager() {
         fi
 
         echo "Install: downloading SealOS Manager from: $MANAGER_RESOLVED_URL"
-        trace curl -o "$DST" -# -f "$MANAGER_RESOLVED_URL"
+        trace curl -L -o "$DST" -# -f "$MANAGER_RESOLVED_URL"
 }
 
 install() {
