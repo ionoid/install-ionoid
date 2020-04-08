@@ -203,12 +203,11 @@ unzip_os_image() {
                 echo "Install ${OS}: found already raw '${IMAGE_DIR}/${UNZIPPED_IMAGE}' image, ignore unzip operation"
                 DELETE_PATCHED_IMAGE="false"
         else
-                real_img_name=$(zipinfo -1 "$IMAGE")
+                UNZIPPED_IMAGE=$(zipinfo -1 "$IMAGE")
                 # unzip in same directory for space storage
                 echo "Install ${OS}: decompressing ${IMAGE} into ${IMAGE_DIR}"
                 unzip -q -j -o "$IMAGE" -d "$IMAGE_DIR" || exit 1
-                mv -f $IMAGE_DIR/$real_img_name $IMAGE_DIR/$UNZIPPED_IMAGE
-                file $IMAGE_DIR/$UNZIPPED_IMAGE
+                echo "Install ${OS}: decompressed image info: $(file $IMAGE_DIR/$UNZIPPED_IMAGE)"
         fi
 }
 
