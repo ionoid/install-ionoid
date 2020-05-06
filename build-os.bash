@@ -160,6 +160,11 @@ install_sealos_manager()
                 return
         fi
 
+        if [ "${OS}" = "sealos" ]; then
+                echo "Install ${OS}: Installing sealos-manager skipped, already installed"
+                return
+        fi
+
         old_pwd=$(pwd)
 
         cd $SEALOS_DIR || exit 2
@@ -373,6 +378,7 @@ prepare_os_filesystems_stage1() {
         # Make sure to clean $WORKDIR
         trap cleanup_mounted_filesystem EXIT || exit 1
 
+        # Create only rootfs directory here
         mkdir -p ${ROOTFS}
 }
 

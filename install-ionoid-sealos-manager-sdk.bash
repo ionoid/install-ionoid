@@ -308,6 +308,14 @@ install() {
                 exit 1
         fi
 
+        if [ -z $OS ]; then
+                if [[ $IMAGE == *"raspbian"* ]]; then
+                        OS="raspbian"
+                elif [[ $IMAGE == *"sealos"* ]]; then
+                        OS="sealos"
+                fi
+        fi
+
         export OS=$OS
         export DESTDIR=$DESTDIR
 
@@ -319,9 +327,6 @@ install() {
         export MACHINE="arm6"
         echo "Install: using Machine 'arm6' instead of '$MACHINE' for sealos-manager, you can ignore this"
 
-        # Set sealos manager file to be downloaded
-        MANAGER_FILE="sealos-manager-latest-${MACHINE}"
-
         # create the target where to download manager file in case
         mkdir -p ${manager_dst} > /dev/null 2>&1
 
@@ -330,31 +335,37 @@ install() {
                 manager_dst=$scratch
         fi
 
-        download_src=$URL/${MANAGER_FILE}.link
-        download_dst=${manager_dst}/${MANAGER_FILE}.zip
-        extract_dst=${manager_dst}/${MANAGER_FILE}
+        # IF not sealos download sealos manager
+        if [ "$OS" != "sealos" ]; then
+                # Set sealos manager file to be downloaded
+                MANAGER_FILE="sealos-manager-latest-${MACHINE}"
 
-        schedule_feedback $STATUS_FILE "in_progress" \
-                "Downloading build OS tools" 33 "null"
+                download_src=$URL/${MANAGER_FILE}.link
+                download_dst=${manager_dst}/${MANAGER_FILE}.zip
+                extract_dst=${manager_dst}/${MANAGER_FILE}
 
-        # Print the selected version to be downloaded
-        echo "Install: Selected SealOS Manager version: $MANAGER_FILE" >&2
-        schedule_feedback $STATUS_FILE "in_progress" \
-                "Downloading SealOS Manager tools" 35 "null"
+                schedule_feedback $STATUS_FILE "in_progress" \
+                        "Downloading build OS tools" 33 "null"
 
-        # Download SealOS Manager has to be called to resolve manager version
-        download_sealos_manager "$download_src" "$download_dst" || return
-        echo
+                # Print the selected version to be downloaded
+                echo "Install: Selected SealOS Manager version: $MANAGER_FILE" >&2
+                schedule_feedback $STATUS_FILE "in_progress" \
+                        "Downloading SealOS Manager tools" 35 "null"
 
-        # Get SealOS Manager Version into target_dir based on dowloaded version
-        target_dir=$(basename -- $MANAGER_RESOLVED_URL)
-        target_dir="${target_dir%.*}"
-        export SEALOS_DIR="${extract_dst}/${target_dir}"
-
-        # Before unzip check if sealos-manager was already extracted before
-        if [ ! -f "${SEALOS_DIR}/prod/machine" ]; then
-                trace unzip -q -o "$download_dst" -d "${extract_dst}" || return
+                # Download SealOS Manager has to be called to resolve manager version
+                download_sealos_manager "$download_src" "$download_dst" || return
                 echo
+
+                # Get SealOS Manager Version into target_dir based on dowloaded version
+                target_dir=$(basename -- $MANAGER_RESOLVED_URL)
+                target_dir="${target_dir%.*}"
+                export SEALOS_DIR="${extract_dst}/${target_dir}"
+
+                # Before unzip check if sealos-manager was already extracted before
+                if [ ! -f "${SEALOS_DIR}/prod/machine" ]; then
+                        trace unzip -q -o "$download_dst" -d "${extract_dst}" || return
+                        echo
+                fi
         fi
 
         # SealOS Manager now is extracted at location $extract_dst/$target_dir
@@ -401,7 +412,7 @@ install() {
                         trace sudo -E "./build-os.bash" || return
                 fi
         else
-                trace cd "$extract_dst/${target_dir}"
+                trace cd "${extract_dst}/${target_dir}"
 
                 # Install config.json to be put into production
                 if [ ! -z ${CONFIG} ]; then
